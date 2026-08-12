@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Your 7-Day Maths Practice | Irish Maths Prep</title>
+<meta name="robots" content="noindex,nofollow" />
+<style>
+:root{
+  --bg:#f6f8f4;--card:#fff;--ink:#1d2b24;--muted:#5d6b63;--brand:#167a53;
+  --brand2:#e6f4ed;--line:#dce5df;--soft:#f0f4f1;--warm:#fff6f2;--warmline:#edcfbf;
+  --warmink:#9a4d32;--radius:20px;--shadow:0 12px 35px rgba(32,54,42,.08)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+button{font:inherit;cursor:pointer}
+.wrap{max-width:860px;margin:0 auto;padding:22px}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 0 20px}
+.brand{font-weight:900;letter-spacing:-.03em}.brand span{color:var(--brand)}
+.pill{font-size:13px;padding:7px 10px;border-radius:999px;background:var(--brand2);color:var(--brand);font-weight:800}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px}
+.hidden{display:none!important}
+.eyebrow{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--brand);font-weight:900}
+h1{font-size:clamp(36px,6vw,54px);line-height:1.03;letter-spacing:-.045em;margin:9px 0 15px}
+h2{font-size:30px;line-height:1.08;letter-spacing:-.03em;margin:0 0 12px}
+h3{font-size:20px;margin:0 0 8px}
+.lede{font-size:19px;color:var(--muted);max-width:700px}
+.promise{margin:20px 0;padding:18px 20px;border-radius:16px;background:var(--brand2);border:1px solid #cde3d8;font-size:19px;font-weight:850;color:#24583f}
+.focusline{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.focuschip{padding:8px 11px;border-radius:999px;background:#fff;border:1px solid #cfe2d7;font-size:13px;font-weight:800}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:850;min-height:50px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn-primary{background:var(--brand);color:#fff}.btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:24px 0}
+.daydot{border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;font-size:12px;color:var(--muted);background:#fff}
+.daydot strong{display:block;font-size:15px;color:var(--ink)}.daydot.done{background:var(--brand2);border-color:#cfe3d8}.daydot.current{outline:3px solid rgba(22,122,83,.16);border-color:var(--brand)}
+.progress-shell{height:10px;background:#e7eeea;border-radius:999px;overflow:hidden;margin:10px 0 22px}.progress{height:100%;background:var(--brand);transition:width .2s}
+.qtop{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.qmeta{font-size:13px;color:var(--muted);font-weight:750}
+.question{font-size:27px;line-height:1.22;margin:16px 0 18px;letter-spacing:-.02em}
+.visual{margin:4px auto 20px;padding:18px;border-radius:16px;background:var(--soft);border:1px solid var(--line);max-width:580px;text-align:center}
+.answers{display:grid;gap:10px}.answer{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px 16px;font-weight:750;color:var(--ink)}
+.answer:hover{border-color:#9fcbb8;background:#fbfdfc}.answer.correct{border-color:#76b596;background:#edf8f2}.answer.wrong{border-color:#d29b83;background:#fff5f1}
+.answer:disabled{cursor:default}
+.feedback{margin-top:16px;padding:14px 16px;border-radius:13px;background:var(--soft);font-size:15px}.feedback.good{background:#edf8f2;color:#275a43}.feedback.try{background:#fff6f2;color:#7a4534}
+.subscribe{margin-top:24px;border:1px solid #cfe3d8;background:#fbfdfc;border-radius:18px;padding:20px}
+.subscribe .tagline{font-size:18px;font-weight:900;line-height:1.35;margin-bottom:7px}.subscribe p{margin:0;color:var(--muted)}
+.price{font-weight:900;color:var(--brand)}
+.resultbox{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.stat{border:1px solid var(--line);border-radius:15px;padding:16px;background:#fff}.stat b{font-size:28px;display:block}
+.notice{padding:15px 17px;background:var(--brand2);border-radius:14px;border:1px solid #cfe3d8}
+.small{font-size:13px;color:var(--muted)}
+.tenframes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.tenframe{display:grid;grid-template-columns:repeat(5,20px);grid-template-rows:repeat(2,20px);gap:3px;border:2px solid #65776e;padding:4px;border-radius:6px;background:#fff}.dot{width:17px;height:17px;border-radius:50%;background:#2e7d5a;margin:auto}.dot.empty{background:transparent;border:1px solid #d5ded9}
+.base10{display:flex;gap:10px;justify-content:center;align-items:flex-end;flex-wrap:wrap}.tenbar{width:24px;height:90px;border-radius:5px;background:#73ae90;position:relative}.tenbar:after{content:"10";position:absolute;inset:auto 0 5px;text-align:center;font-size:11px;color:#fff;font-weight:900}.one{width:24px;height:24px;border-radius:5px;background:#d6a84b}
+.clock{width:160px;height:160px;border:5px solid #51645a;border-radius:50%;margin:0 auto;position:relative;background:#fff}.clock:before{content:"";position:absolute;width:9px;height:9px;background:#28342e;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5}.hand{position:absolute;left:50%;top:50%;height:4px;background:#28342e;transform-origin:0 50%;border-radius:3px}.num{position:absolute;font-weight:800;color:#46564e}.n12{top:5px;left:50%;transform:translateX(-50%)}.n3{right:8px;top:50%;transform:translateY(-50%)}.n6{bottom:5px;left:50%;transform:translateX(-50%)}.n9{left:8px;top:50%;transform:translateY(-50%)}
+.ruler{height:76px;background:#fff;border:2px solid #697a71;border-radius:6px;position:relative;margin:8px auto;max-width:540px}.ruler .tick{position:absolute;bottom:0;width:1px;background:#5b6d64}.ruler .lab{position:absolute;top:5px;font-size:10px;transform:translateX(-50%)}.rulerobj{height:14px;background:#d6a84b;border-radius:999px;position:absolute;bottom:16px;left:0}
+.coins{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}.coin{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;border:3px solid #7b7568;background:#e9d39d;font-weight:900}.coin.cent{background:#c97e50;color:#fff;border-color:#9b5c39}
+.fractionbar{display:flex;max-width:380px;margin:auto;height:75px}.fracpart{flex:1;border:2px solid #52665b;border-right:0;background:#fff}.fracpart:first-child{border-radius:7px 0 0 7px}.fracpart:last-child{border-right:2px solid #52665b;border-radius:0 7px 7px 0}.fracpart.shaded{background:#78b79a}
+.patternrow{display:flex;gap:14px;align-items:flex-end;justify-content:center}.tower{display:flex;gap:2px;flex-wrap:wrap;align-content:flex-end;width:48px}.tile{width:22px;height:22px;background:#6aa98b;border-radius:4px}.towerlabel{text-align:center;font-size:12px;margin-top:4px;color:var(--muted)}
+.shapes{display:flex;justify-content:center;gap:28px;align-items:center;flex-wrap:wrap}.shape{display:inline-block}.square{width:68px;height:68px;border:4px solid #44685a}.rect{width:95px;height:58px;border:4px solid #44685a}.circle{width:68px;height:68px;border:4px solid #44685a;border-radius:50%}.triangle{width:0;height:0;border-left:38px solid transparent;border-right:38px solid transparent;border-bottom:67px solid #44685a}
+.mapgrid{display:grid;grid-template-columns:repeat(3,75px);grid-template-rows:repeat(3,65px);gap:5px;justify-content:center}.mapcell{border:1px solid #d6dfda;border-radius:8px;background:#fff;display:grid;place-items:center;font-size:25px}
+.graph{display:grid;grid-template-columns:90px 1fr;gap:9px;align-items:center;max-width:470px;margin:auto;text-align:left}.bars{display:flex;gap:4px}.bar{width:28px;height:28px;border-radius:5px;background:#7baa93;display:inline-block}
+@media(max-width:680px){.wrap{padding:14px}.card{padding:20px}.days{grid-template-columns:repeat(4,1fr)}.question{font-size:23px}.btn{width:100%}.actions{display:grid}.resultbox{grid-template-columns:1fr}.qtop{align-items:center}.mapgrid{grid-template-columns:repeat(3,65px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><div class="brand"><a href="/" style="text-decoration:none;color:inherit">Irish Maths <span>Prep</span></a></div><div class="pill">7-Day Practice</div></div>
+
+  <section id="welcome" class="card hidden">
+    <div class="eyebrow">Your personalised practice is ready</div>
+    <h1>Your 7-Day First Class Maths Practice</h1>
+    <p class="lede">Seven short interactive sessions, built around the areas that looked most useful to practise in the snapshot.</p>
+    <div class="promise">You don’t have to figure out what to practise next. We choose it for you.</div>
+    <div id="welcomeFocus" class="focusline"></div>
+    <p>Each day includes real on-screen maths questions like the snapshot. If something is difficult, we’ll offer a simpler follow-up before moving on.</p>
+    <div class="actions"><button id="startNextBtn" class="btn btn-primary">Start Day 1</button></div>
+    <p class="small" style="margin-top:16px">About 8–10 minutes per day. No account or password required for this free practice.</p>
+  </section>
+
+  <section id="practice" class="card hidden">
+    <div class="qtop"><div><div id="dayLabel" class="eyebrow"></div><div id="qMeta" class="qmeta"></div></div><div id="skillChip" class="pill"></div></div>
+    <div id="dayDots" class="days"></div>
+    <div class="progress-shell"><div id="qProgress" class="progress"></div></div>
+    <div id="qVisual" class="visual hidden"></div>
+    <div id="qText" class="question"></div>
+    <div id="answers" class="answers"></div>
+    <div id="feedback" class="feedback hidden"></div>
+    <div id="nextAction" class="actions hidden"></div>
+    <div class="subscribe">
+      <div class="tagline">You don’t have to figure out what to practise next. We choose it for you.</div>
+      <p>Keep personalised 10-minute maths practice going after your free week.</p>
+      <div class="actions"><button class="btn btn-primary subscribeBtn">Keep this going — €9.99/month</button></div>
+      <div class="small">No payment today during this early-access test.</div>
+    </div>
+  </section>
+
+  <section id="dayResult" class="card hidden">
+    <div id="resultEyebrow" class="eyebrow"></div>
+    <h2 id="resultTitle"></h2>
+    <p id="resultCopy" class="lede" style="font-size:18px"></p>
+    <div class="resultbox"><div class="stat"><b id="scoreStat"></b><span>answered correctly first time</span></div><div class="stat"><b id="recoveryStat"></b><span>simpler follow-ups completed</span></div></div>
+    <div class="notice" id="nextNotice"></div>
+    <div class="subscribe">
+      <div class="tagline">You don’t have to figure out what to practise next. We choose it for you.</div>
+      <p>We’ll keep selecting practice from what your child needs next and revisit skills at the right time.</p>
+      <div class="actions"><button class="btn btn-primary subscribeBtn">Continue for €9.99/month</button></div>
+      <div class="small">No payment today during this early-access test.</div>
+    </div>
+    <div class="actions"><button id="nextDayBtn" class="btn btn-secondary"></button></div>
+  </section>
+
+  <section id="weekResult" class="card hidden">
+    <div class="eyebrow">Your free week is complete</div>
+    <h1>Seven days of personalised practice — done.</h1>
+    <p class="lede">You’ve now seen how Irish Maths Prep can turn a short skills snapshot into focused practice without you having to decide what comes next.</p>
+    <div class="promise">You don’t have to figure out what to practise next. We choose it for you.</div>
+    <div id="weekSummary" class="notice"></div>
+    <div class="subscribe" style="margin-top:20px">
+      <div class="tagline">Keep the personalised practice going.</div>
+      <p>Short sessions, continued review, and practice chosen from the skills that need attention next.</p>
+      <div class="actions"><button class="btn btn-primary subscribeBtn">Continue for €9.99/month</button></div>
+      <div class="small">No payment today during this early-access test.</div>
+    </div>
+  </section>
+
+  <section id="badLink" class="card hidden">
+    <h2>We couldn’t open this practice plan.</h2>
+    <p>The link is missing the snapshot information needed to build the seven-day practice. Please use the link from your Irish Maths Prep email.</p>
+    <div class="actions"><a class="btn btn-primary" href="/first-class-maths/">Take the free snapshot</a></div>
+  </section>
+</div>
+
+<script>
+const SKILLS={
+ N1:{title:'Counting in groups',strand:'Number'},N4:{title:'Place value',strand:'Number'},N5:{title:'Tens and ones',strand:'Number'},
+ N10:{title:'Addition across ten',strand:'Number'},N11:{title:'Subtraction strategies',strand:'Number'},N16:{title:'Simple fractions',strand:'Number'},
+ M1:{title:'Comparing measures',strand:'Measures'},M3:{title:'Using a ruler',strand:'Measures'},M7:{title:'Time',strand:'Measures'},M9:{title:'Money',strand:'Measures'},
+ A1:{title:'Growing patterns',strand:'Algebra'},A2:{title:'Number sequences',strand:'Algebra'},A5:{title:'Equality',strand:'Algebra'},
+ S1:{title:'Position and direction',strand:'Shape & Space'},S4:{title:'2-D shape properties',strand:'Shape & Space'},S7:{title:'Flip, turn and slide',strand:'Shape & Space'},
+ D2:{title:'Reading graphs',strand:'Data'},D3:{title:'Using data as evidence',strand:'Data'}
+};
+
+function hashString(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rngFor(s){let a=hashString(s)||1;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function ri(r,a,b){return Math.floor(r()*(b-a+1))+a}
+function pick(r,a){return a[Math.floor(r()*a.length)]}
+function shuffle(r,a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function uniq(a){return [...new Set(a.map(String))]}
+function qobj(skill,text,answer,distractors,visual='',explain=''){
+ const choices=uniq([answer,...distractors]).slice(0,4); while(choices.length<3)choices.push(String(Number(answer||0)+choices.length+1));
+ return {skill,text,answer:String(answer),choices,visual,explain};
+}
+function money(cents){return cents>=100?`€${Math.floor(cents/100)}${cents%100?'.'+String(cents%100).padStart(2,'0'):''}`:`${cents}c`}
+function numChoices(c){return [c-1,c+1,c-10,c+10].filter(x=>x>=0&&x!==c)}
+
+function tenFrame(full,extra){let h='<div class="tenframes">';for(let f=0;f<full;f++){h+='<div class="tenframe">'+Array.from({length:10},()=>'<span class="dot"></span>').join('')+'</div>'}if(extra){h+='<div class="tenframe">'+Array.from({length:10},(_,i)=>`<span class="dot ${i<extra?'':'empty'}"></span>`).join('')+'</div>'}return h+'</div>'}
+function base10(t,o){return '<div class="base10">'+Array.from({length:t},()=>'<span class="tenbar"></span>').join('')+Array.from({length:o},()=>'<span class="one"></span>').join('')+'</div>'}
+function fractionVisual(n,d){return '<div class="fractionbar">'+Array.from({length:d},(_,i)=>`<span class="fracpart ${i<n?'shaded':''}"></span>`).join('')+'</div>'}
+function clockVisual(hour,minute){const hourDeg=((hour%12)+(minute/60))*30-90, minDeg=minute*6-90;return `<div class="clock"><span class="num n12">12</span><span class="num n3">3</span><span class="num n6">6</span><span class="num n9">9</span><span class="hand" style="width:43px;transform:rotate(${hourDeg}deg)"></span><span class="hand" style="width:59px;transform:rotate(${minDeg}deg)"></span></div>`}
+function rulerVisual(len){let ticks='';for(let i=0;i<=20;i++){const x=i*5;ticks+=`<span class="tick" style="left:${x}%;height:${i%5===0?25:14}px"></span>`;if(i%2===0)ticks+=`<span class="lab" style="left:${x}%">${i}</span>`}return `<div class="ruler">${ticks}<span class="rulerobj" style="width:${len*5}%"></span></div>`}
+function coinsVisual(vals){return '<div class="coins">'+vals.map(v=>`<span class="coin ${v<100?'cent':''}">${v===100?'€1':v+'c'}</span>`).join('')+'</div>'}
+function patternVisual(vals){return '<div class="patternrow">'+vals.map(v=>`<div><div class="tower">${Array.from({length:v},()=>'<span class="tile"></span>').join('')}</div><div class="towerlabel">${v}</div></div>`).join('')+'</div>'}
+function shapesVisual(){return '<div class="shapes"><span class="shape square"></span><span class="shape rect"></span><span class="shape triangle"></span><span class="shape circle"></span></div>'}
+function mapVisual(items){let cells=Array.from({length:9},()=>'<div class="mapcell"></div>');for(const [idx,icon] of Object.entries(items))cells[Number(idx)]=`<div class="mapcell">${icon}</div>`;return '<div class="mapgrid">'+cells.join('')+'</div>'}
+function graphVisual(data){return '<div class="graph">'+Object.entries(data).map(([k,v])=>`<strong>${k}</strong><div class="bars">${Array.from({length:v},()=>'<span class="bar"></span>').join('')}</div>`).join('')+'</div>'}
+
+function genN1(r,easy){
+ const t=ri(r,easy?1:2,easy?3:5),o=ri(r,1,easy?5:9),c=t*10+o;
+ return qobj('N1','How many are there altogether?',c,[t+o,o*10+t,c+10],tenFrame(t,o),'Count the full groups of ten first, then add the extra ones.');
+}
+function genN4(r,easy){
+ const t=ri(r,2,9),o=ri(r,1,9),n=t*10+o;
+ if(easy){return qobj('N4',`In ${n}, what does the ${o} mean?`,`${o} ones`,[`${o} tens`,`${o*10} ones`],`<div style="font-size:62px;font-weight:900">${t}<span style="color:#167a53">${o}</span></div>`,'The right-hand digit tells us the number of ones.')}
+ const askT=r()<.6;const d=askT?t:o,c=askT?t*10:o;
+ return qobj('N4',`What value does the highlighted ${d} have in ${n}?`,c,[d,d*100,askT?o*10:t],`<div style="font-size:62px;font-weight:900">${askT?`<span style="color:#167a53">${t}</span>${o}`:`${t}<span style="color:#167a53">${o}</span>`}</div>`,'A digit’s value depends on its place in the number.');
+}
+function genN5(r,easy){const t=ri(r,1,easy?4:8),o=ri(r,0,easy?5:9),c=t*10+o;return qobj('N5',`${t} tens and ${o} ones make what number?`,c,[t+o,o*10+t,c+10],base10(t,o),'Each ten is worth 10, then add the ones.')}
+function genN10(r,easy){
+ let tens=ri(r,1,easy?3:6),ones=ri(r,easy?6:5,9),b=ri(r,easy?2:3,easy?6:9);if(ones+b<10)b=10-ones+ri(r,0,2);const a=tens*10+ones,c=a+b;
+ return qobj('N10',`${a} + ${b} = ?`,c,numChoices(c),`<div style="font-size:42px;font-weight:900">${a} + ${b}</div>`,'It can help to make the next ten first, then add what is left.');
+}
+function genN11(r,easy){
+ let tens=ri(r,2,easy?4:7),ones=ri(r,1,easy?5:7),b=ri(r,ones+1,easy?8:9),a=tens*10+ones,c=a-b;
+ return qobj('N11',`${a} − ${b} = ?`,c,numChoices(c),`<div style="font-size:42px;font-weight:900">${a} − ${b}</div>`,'Try stepping back to the previous ten, then subtract the rest.');
+}
+function genN16(r,easy){
+ const d=easy?2:pick(r,[2,4]),n=ri(r,1,d-1),a=`${n}/${d}`;let dis=d===4?['1/2','1/4','3/4']:['1/4','2/2','1/3'];
+ return qobj('N16','What fraction of the shape is shaded?',a,dis.filter(x=>x!==a),fractionVisual(n,d),'Fractions describe equal parts of one whole.');
+}
+function genM1(r,easy){
+ let a=ri(r,15,easy?45:75),b=a+ri(r,easy?5:2,easy?20:18);if(r()<.5)[a,b]=[b,a];const askLong=r()<.65,c=askLong?(a>b?'Ribbon A':'Ribbon B'):(a<b?'Ribbon A':'Ribbon B');
+ return qobj('M1',`Ribbon A is ${a} cm. Ribbon B is ${b} cm. Which is ${askLong?'longer':'shorter'}?`,c,['Ribbon A','Ribbon B','They are the same'],`<div style="font-size:18px"><b>A:</b> ${a} cm &nbsp;&nbsp; <b>B:</b> ${b} cm</div>`,'Compare the measurements using the same unit.');
+}
+function genM3(r,easy){const len=ri(r,easy?4:6,easy?10:18);return qobj('M3','How long is the object on the ruler?',`${len} cm`,[`${len-1} cm`,`${len+1} cm`,`${len+2} cm`],rulerVisual(len),'Start measuring from the 0 mark and include the unit.')}
+function genM7(r,easy){const h=ri(r,1,11),m=easy?0:pick(r,[0,30]),ans=`${h}:${String(m).padStart(2,'0')}`;return qobj('M7','Which digital time matches this clock?',ans,[`${h}:30`,`${h===11?12:h+1}:00`,`${h===1?12:h-1}:30`].filter(x=>x!==ans),clockVisual(h,m),'The long hand tells the minutes; the short hand tells the hour.')}
+function genM9(r,easy){
+ const coins=easy?[100,pick(r,[50,20,10])]:shuffle(r,[100,50,20,20,10,10]).slice(0,ri(r,3,5));const c=coins.reduce((a,b)=>a+b,0),ans=money(c);
+ return qobj('M9','How much money is there altogether?',ans,[money(c-10),money(c+10),money(c+20)].filter(x=>x!==ans),coinsVisual(coins),'Add the euro and cent values carefully.');
+}
+function genA1(r,easy){
+ const step=easy?2:pick(r,[2,3]),start=ri(r,1,4),vals=[start,start+step,start+2*step],c=start+3*step;
+ return qobj('A1','The pattern grows by the same amount each time. What comes next?',c,[c-step,c+1,c+step],patternVisual(vals),'Look for how many tiles are added from one step to the next.');
+}
+function genA2(r,easy){
+ const step=easy?2:pick(r,[2,5,10]),start=step===10?ri(r,1,3)*10:ri(r,1,12),vals=[start,start+step,start+2*step,start+3*step],c=start+4*step;
+ return qobj('A2',`${vals.join(', ')}, __. What comes next?`,c,[c-step,c+1,c+step],'','Find the step that repeats each time.');
+}
+function genA5(r,easy){
+ if(easy){const c=ri(r,3,8),add=ri(r,1,4),tot=c+add;return qobj('A5',`□ + ${add} = ${tot}. What belongs in the box?`,c,[c-1,c+1,tot],`<div style="font-size:40px;font-weight:900">□ + ${add} = ${tot}</div>`,'Both sides of the equals sign must have the same value.')}
+ const a=ri(r,4,10),b=ri(r,2,8),c=ri(r,2,8),ans=a+b-c;if(ans<1)return genA5(r,false);
+ return qobj('A5',`${a} + ${b} = □ + ${c}. What belongs in the box?`,ans,[ans-1,ans+1,a+b],`<div style="font-size:40px;font-weight:900">${a} + ${b} = □ + ${c}</div>`,'Work out the value of one side, then make the other side equal to it.');
+}
+function genS1(r,easy){
+ const rel=pick(r,['right','left','above','below']);const pos={right:5,left:3,above:1,below:7}[rel];const items={4:'🌳',[pos]:'⚽'};
+ return qobj('S1',`Where is the ball in relation to the tree?`,rel[0].toUpperCase()+rel.slice(1),['Right','Left','Above','Below'].filter(x=>x.toLowerCase()!==rel),mapVisual(items),'Use the tree as the reference point, then describe the ball’s position.');
+}
+function genS4(r,easy){
+ const modes=[
+  ['Which shape has 3 straight sides?','Triangle',['Square','Rectangle','Circle']],
+  ['Which shape has no straight sides?','Circle',['Square','Triangle','Rectangle']],
+  ['Which shape has 4 equal straight sides?','Square',['Rectangle','Triangle','Circle']],
+  ['Which shape has 4 straight sides but does not need all 4 sides equal?','Rectangle',['Triangle','Circle','Square']]
+ ];const m=easy?modes[0]:pick(r,modes);return qobj('S4',m[0],m[1],m[2],shapesVisual(),'Name shapes by their properties, not by how they are turned.');
+}
+function genS7(r,easy){
+ const modes=[
+  ['A shape moves across the page without turning or flipping. What movement is this?','Slide',['Turn','Flip']],
+  ['A shape changes direction by rotating around a point. What movement is this?','Turn',['Slide','Flip']],
+  ['A shape is mirrored over a line. What movement is this?','Flip',['Slide','Turn']]
+ ];const m=easy?modes[0]:pick(r,modes);return qobj('S7',m[0],m[1],m[2],`<div style="font-size:50px">${m[1]==='Slide'?'➡️':m[1]==='Turn'?'↻':'⇄'}</div>`,'A slide moves, a turn rotates, and a flip makes a mirror image.');
+}
+function makeData(r){let vals=[ri(r,1,5),ri(r,1,5),ri(r,1,5),ri(r,1,5)];if(new Set(vals).size<4)vals=shuffle(r,[5,4,2,1]);return {Apples:vals[0],Bananas:vals[1],Oranges:vals[2],Pears:vals[3]}}
+function genD2(r,easy){
+ const data=makeData(r),entries=Object.entries(data),mode=easy?'count':pick(r,['most','least','count']);let text,ans;
+ if(mode==='most'){const m=Math.max(...entries.map(x=>x[1]));ans=entries.find(x=>x[1]===m)[0];text='Which fruit was chosen by the most children?'}
+ else if(mode==='least'){const m=Math.min(...entries.map(x=>x[1]));ans=entries.find(x=>x[1]===m)[0];text='Which fruit was chosen by the fewest children?'}
+ else {const [k,v]=pick(r,entries);ans=v;text=`How many children chose ${k.toLowerCase()}?`}
+ return qobj('D2',text,ans,mode==='count'?[1,2,3,4,5].filter(x=>x!==ans):entries.map(x=>x[0]).filter(x=>x!==ans),graphVisual(data),'Read the bars carefully and use the values shown.');
+}
+function genD3(r,easy){
+ const data=makeData(r),entries=Object.entries(data);let [a,b]=shuffle(r,entries).slice(0,2);const trueClaim=a[1]>b[1],text=`A child says more children chose ${a[0].toLowerCase()} than ${b[0].toLowerCase()}. Is that correct?`;
+ const yes=`Yes — ${a[1]} chose ${a[0].toLowerCase()} and ${b[1]} chose ${b[0].toLowerCase()}`;
+ const no=`No — ${a[1]} chose ${a[0].toLowerCase()} and ${b[1]} chose ${b[0].toLowerCase()}`;
+ const ans=trueClaim?yes:no;
+ return qobj('D3',text,ans,[trueClaim?no:yes,'There is not enough information'],graphVisual(data),'Use the actual values in the graph as evidence for the answer.');
+}
+
+const GENS={N1:genN1,N4:genN4,N5:genN5,N10:genN10,N11:genN11,N16:genN16,M1:genM1,M3:genM3,M7:genM7,M9:genM9,A1:genA1,A2:genA2,A5:genA5,S1:genS1,S4:genS4,S7:genS7,D2:genD2,D3:genD3};
+
+const params=new URLSearchParams(location.search);
+const sid=String(params.get('sid')||'').slice(0,100);
+const focus=String(params.get('focus')||'').split(',').filter(x=>SKILLS[x]).slice(0,2);
+const review=String(params.get('review')||'').split(',').filter(x=>SKILLS[x]&&!focus.includes(x)).slice(0,2);
+const storeKey='imp_practice_'+sid;
+let saved={days:{},intent:false};try{saved=JSON.parse(localStorage.getItem(storeKey)||'{"days":{},"intent":false}')||saved}catch(e){}
+if(!saved.days)saved.days={};
+
+let currentDay=1,questions=[],qIndex=0,firstTryCorrect=0,recovered=0,currentQ=null,inEasy=false,answered=false;
+
+function save(){localStorage.setItem(storeKey,JSON.stringify(saved))}
+function show(id){['welcome','practice','dayResult','weekResult','badLink'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));window.scrollTo({top:0,behavior:'smooth'})}
+function track(event,props={}){if(!sid)return;fetch('/api/event',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({event,session_id:sid,page:'/practice/',...props})}).catch(()=>{})}
+function nextIncomplete(){for(let d=1;d<=7;d++)if(!saved.days[d])return d;return 8}
+function daySkills(day){
+ const [a,b]=focus.length===2?focus:[focus[0],focus[0]];
+ if(day===1||day===3)return Array(8).fill(a);
+ if(day===2||day===4)return Array(8).fill(b);
+ if(day===5)return [a,a,a,a,b,b,b,b];
+ if(day===6){
+   const rv=review.length?review:[a,b];
+   return [a,a,a,b,b,b,rv[0]||a,rv[1]||b];
+ }
+ return [a,a,a,a,b,b,b,b];
+}
+function buildQuestions(day){
+ const r=rngFor(`${sid}|day${day}|${focus.join('-')}`);
+ const skills=shuffle(r,daySkills(day));const out=[];const seen=new Set();
+ for(let i=0;i<skills.length;i++){
+   let q;for(let attempt=0;attempt<8;attempt++){q=GENS[skills[i]](r,false);const key=q.skill+'|'+q.text+'|'+q.answer;if(!seen.has(key)){seen.add(key);break}}
+   q.choices=shuffle(r,q.choices);out.push(q);
+ }
+ return out;
+}
+function renderDots(day){
+ const el=document.getElementById('dayDots');el.innerHTML='';
+ for(let d=1;d<=7;d++){const x=document.createElement('div');x.className='daydot'+(saved.days[d]?' done':'')+(d===day?' current':'');x.innerHTML=`<strong>${saved.days[d]?'✓':d}</strong>Day`;el.appendChild(x)}
+}
+function init(){
+ if(!sid||focus.length<2){show('badLink');return}
+ document.getElementById('welcomeFocus').innerHTML=focus.map(id=>`<span class="focuschip">${SKILLS[id].title}</span>`).join('');
+ const n=nextIncomplete();const btn=document.getElementById('startNextBtn');
+ if(n<=7){btn.textContent=saved.days[1]?`Continue with Day ${n}`:'Start Day 1';btn.onclick=()=>startDay(n)}
+ else {btn.textContent='See my week';btn.onclick=showWeek}
+ document.querySelectorAll('.subscribeBtn').forEach(b=>b.onclick=subscriptionIntent);
+ track('practice_link_opened',{focus});
+ show(n>7?'weekResult':'welcome');if(n>7)showWeek();
+}
+function startDay(day){
+ currentDay=day;questions=buildQuestions(day);qIndex=0;firstTryCorrect=0;recovered=0;inEasy=false;answered=false;
+ document.getElementById('dayLabel').textContent=`Day ${day} of 7`;renderDots(day);track('practice_day_started',{day,focus});show('practice');renderQ();
+}
+function renderQ(){
+ currentQ=questions[qIndex];inEasy=false;answered=false;
+ document.getElementById('qMeta').textContent=`Question ${qIndex+1} of ${questions.length}`;
+ document.getElementById('skillChip').textContent=SKILLS[currentQ.skill].title;
+ document.getElementById('qProgress').style.width=`${(qIndex/questions.length)*100}%`;
+ document.getElementById('qText').textContent=currentQ.text;
+ const vis=document.getElementById('qVisual');if(currentQ.visual){vis.innerHTML=currentQ.visual;vis.classList.remove('hidden')}else{vis.innerHTML='';vis.classList.add('hidden')}
+ renderAnswers(currentQ);
+ document.getElementById('feedback').className='feedback hidden';document.getElementById('nextAction').className='actions hidden';document.getElementById('nextAction').innerHTML='';
+}
+function renderAnswers(q){
+ const a=document.getElementById('answers');a.innerHTML='';
+ q.choices.forEach(choice=>{const b=document.createElement('button');b.className='answer';b.textContent=choice;b.onclick=()=>answer(choice,b);a.appendChild(b)})
+}
+function answer(choice,button){
+ if(answered)return;answered=true;document.querySelectorAll('.answer').forEach(b=>b.disabled=true);
+ const correct=String(choice)===String(currentQ.answer);button.classList.add(correct?'correct':'wrong');
+ const f=document.getElementById('feedback');f.classList.remove('hidden');
+ if(correct){
+   if(inEasy)recovered++;else firstTryCorrect++;
+   f.className='feedback good';f.innerHTML=`<strong>That’s right.</strong> ${currentQ.explain||''}`;
+   showNextButton();
+ }else{
+   f.className='feedback try';f.innerHTML=`<strong>Not quite.</strong> ${inEasy?currentQ.explain:'Let’s try the same idea once more in a simpler way.'}`;
+   if(inEasy){showNextButton()}else{
+     const acts=document.getElementById('nextAction');acts.className='actions';acts.innerHTML='<button class="btn btn-secondary" id="easyBtn">Try a simpler one</button>';document.getElementById('easyBtn').onclick=showEasy;
+   }
+ }
+ track('practice_question_answered',{day:currentDay,focus:[currentQ.skill],correct,level:inEasy?'easy':'core'});
+}
+function showEasy(){
+ const r=rngFor(`${sid}|day${currentDay}|q${qIndex}|easy`);currentQ=GENS[currentQ.skill](r,true);currentQ.choices=shuffle(r,currentQ.choices);inEasy=true;answered=false;
+ document.getElementById('qText').textContent=currentQ.text;const vis=document.getElementById('qVisual');if(currentQ.visual){vis.innerHTML=currentQ.visual;vis.classList.remove('hidden')}else{vis.innerHTML='';vis.classList.add('hidden')}renderAnswers(currentQ);
+ document.getElementById('feedback').className='feedback hidden';document.getElementById('nextAction').className='actions hidden';document.getElementById('nextAction').innerHTML='';
+}
+function showNextButton(){
+ const acts=document.getElementById('nextAction');acts.className='actions';acts.innerHTML=`<button class="btn btn-primary" id="continueQ">${qIndex===questions.length-1?'Finish Day '+currentDay:'Next question'}</button>`;document.getElementById('continueQ').onclick=nextQ;
+}
+function nextQ(){qIndex++;if(qIndex>=questions.length){finishDay()}else renderQ()}
+function finishDay(){
+ saved.days[currentDay]={correct:firstTryCorrect,total:questions.length,recovered,at:new Date().toISOString()};save();
+ track('practice_day_completed',{day:currentDay,score:firstTryCorrect,total:questions.length,focus});
+ document.getElementById('resultEyebrow').textContent=`Day ${currentDay} complete`;
+ document.getElementById('resultTitle').textContent=currentDay===7?'Your free practice week is complete.':'Nice work today.';
+ document.getElementById('resultCopy').textContent=firstTryCorrect>=6?'Most of today’s questions looked comfortable. We’ll keep building from that evidence.':firstTryCorrect>=4?'There was a useful mix of secure answers and places to keep practising.':'Today gave us useful information about what deserves more practice.';
+ document.getElementById('scoreStat').textContent=`${firstTryCorrect}/${questions.length}`;
+ document.getElementById('recoveryStat').textContent=String(recovered);
+ document.getElementById('nextNotice').innerHTML=currentDay<7?`<strong>What comes next:</strong> Day ${currentDay+1} will continue the plan using the skills from the original snapshot and what this week is designed to revisit.`:'<strong>You completed all seven sessions.</strong> The next step would be continued personalised practice rather than leaving you to decide what to find next.';
+ const b=document.getElementById('nextDayBtn');if(currentDay<7){b.textContent=`Continue to Day ${currentDay+1}`;b.onclick=()=>startDay(currentDay+1)}else{b.textContent='See my 7-day summary';b.onclick=showWeek}
+ show('dayResult');
+}
+function showWeek(){
+ const done=Object.values(saved.days);const total=done.reduce((a,d)=>a+(d.total||0),0),correct=done.reduce((a,d)=>a+(d.correct||0),0);
+ document.getElementById('weekSummary').innerHTML=`Your child completed <strong>${done.length} practice sessions</strong> and answered <strong>${correct} of ${total}</strong> core questions correctly on the first try. This free week is a sample of the ongoing loop: identify priorities, practise them, revisit them, and use new answers to decide what should come next.`;
+ track('practice_week_viewed',{score:correct,total,focus});show('weekResult');
+}
+async function subscriptionIntent(){
+ if(saved.intent){alert('Thanks — we’ve already saved your interest in continuing at €9.99/month.');return}
+ try{await fetch('/api/intent',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({session_id:sid,price_eur:9.99,page:`/practice/day-${currentDay||'summary'}/`})})}catch(e){}
+ saved.intent=true;save();track('practice_price_intent',{day:currentDay||0,price_eur:9.99,focus});
+ alert('Thanks — we’ve saved your interest in continuing at €9.99/month. No payment has been taken.');
+}
+init();
+</script>
+</body>
+</html>
