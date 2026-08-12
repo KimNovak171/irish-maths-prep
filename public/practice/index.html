@@ -46,7 +46,7 @@ h3{font-size:20px;margin:0 0 8px}
 .subscribe .tagline{font-size:18px;font-weight:900;line-height:1.35;margin-bottom:7px}.subscribe p{margin:0;color:var(--muted)}
 .price{font-weight:900;color:var(--brand)}
 .resultbox{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.stat{border:1px solid var(--line);border-radius:15px;padding:16px;background:#fff}.stat b{font-size:28px;display:block}
-.notice{padding:15px 17px;background:var(--brand2);border-radius:14px;border:1px solid #cfe3d8}
+.notice{padding:15px 17px;background:var(--brand2);border-radius:14px;border:1px solid #cfe3d8}.repeat-note{margin:0 0 18px;padding:12px 14px;border-radius:13px;background:#f7faf8;border:1px solid var(--line);font-size:13px;line-height:1.5;color:var(--muted)}
 .small{font-size:13px;color:var(--muted)}
 .tenframes{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.tenframe{display:grid;grid-template-columns:repeat(5,20px);grid-template-rows:repeat(2,20px);gap:3px;border:2px solid #65776e;padding:4px;border-radius:6px;background:#fff}.dot{width:17px;height:17px;border-radius:50%;background:#2e7d5a;margin:auto}.dot.empty{background:transparent;border:1px solid #d5ded9}
 .base10{display:flex;gap:10px;justify-content:center;align-items:flex-end;flex-wrap:wrap}.tenbar{width:24px;height:90px;border-radius:5px;background:#73ae90;position:relative}.tenbar:after{content:"10";position:absolute;inset:auto 0 5px;text-align:center;font-size:11px;color:#fff;font-weight:900}.one{width:24px;height:24px;border-radius:5px;background:#d6a84b}
@@ -71,7 +71,7 @@ h3{font-size:20px;margin:0 0 8px}
     <p class="lede">Seven short interactive sessions, built around the areas that looked most useful to practise in the snapshot.</p>
     <div class="promise">You don’t have to figure out what to practise next. We choose it for you.</div>
     <div id="welcomeFocus" class="focusline"></div>
-    <p>Each day includes real on-screen maths questions like the snapshot. If something is difficult, we’ll offer a simpler follow-up before moving on.</p>
+    <p>Each day includes real on-screen maths questions like the snapshot. The practice stays inside a conservative First Class range and adjusts gently from your child’s answers.</p><div class="repeat-note"><strong>A little repetition is intentional.</strong> Your child may see a familiar question or skill again during the week. We repeat when it helps build confidence or checks that learning is sticking.</div>
     <div class="actions"><button id="startNextBtn" class="btn btn-primary">Start Day 1</button></div>
     <p class="small" style="margin-top:16px">About 8–10 minutes per day. No account or password required for this free practice.</p>
   </section>
@@ -79,7 +79,7 @@ h3{font-size:20px;margin:0 0 8px}
   <section id="practice" class="card hidden">
     <div class="qtop"><div><div id="dayLabel" class="eyebrow"></div><div id="qMeta" class="qmeta"></div></div><div id="skillChip" class="pill"></div></div>
     <div id="dayDots" class="days"></div>
-    <div class="progress-shell"><div id="qProgress" class="progress"></div></div>
+    <div class="repeat-note"><strong>A little repetition is intentional.</strong> Familiar ideas may return during the week. We keep the level appropriate for First Class rather than making a question harder simply to make it different.</div><div class="progress-shell"><div id="qProgress" class="progress"></div></div>
     <div id="qVisual" class="visual hidden"></div>
     <div id="qText" class="question"></div>
     <div id="answers" class="answers"></div>
@@ -138,243 +138,192 @@ const SKILLS={
  S1:{title:'Position and direction',strand:'Shape & Space'},S4:{title:'2-D shape properties',strand:'Shape & Space'},S7:{title:'Flip, turn and slide',strand:'Shape & Space'},
  D2:{title:'Reading graphs',strand:'Data'},D3:{title:'Using data as evidence',strand:'Data'}
 };
+const LEVEL_NAMES=['Foundation','Developing','Secure'];
+const LEVEL_SUMMARY=[
+ 'a gentle First Class starting level',
+ 'a developing First Class level',
+ 'more secure First Class examples'
+];
+const DAY_TOTAL=8;
 
+function clampLevel(v){v=Number(v);return Number.isFinite(v)?Math.max(0,Math.min(2,Math.round(v))):0}
 function hashString(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
 function rngFor(s){let a=hashString(s)||1;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function ri(r,a,b){return Math.floor(r()*(b-a+1))+a}
 function pick(r,a){return a[Math.floor(r()*a.length)]}
 function shuffle(r,a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function uniq(a){return [...new Set(a.map(String))]}
-function qobj(skill,text,answer,distractors,visual='',explain=''){
+function qobj(skill,text,answer,distractors,visual='',explain='',family=''){
  const choices=uniq([answer,...distractors]).slice(0,4);
- return {skill,text,answer:String(answer),choices,visual,explain};
+ return {skill,text,answer:String(answer),choices,visual,explain,family};
 }
-function tagged(q,concept,family=''){q.concept=concept;if(family)q.family=family;return q}
 function money(cents){return cents>=100?`€${Math.floor(cents/100)}${cents%100?'.'+String(cents%100).padStart(2,'0'):''}`:`${cents}c`}
-function numChoices(c){return [c-1,c+1,c-10,c+10].filter(x=>x>=0&&x!==c)}
+function numChoices(c){return [c-1,c+1,c-2,c+2,c-10,c+10].filter(x=>x>=0&&x!==c)}
 
 function tenFrame(full,extra){let h='<div class="tenframes">';for(let f=0;f<full;f++){h+='<div class="tenframe">'+Array.from({length:10},()=>'<span class="dot"></span>').join('')+'</div>'}if(extra){h+='<div class="tenframe">'+Array.from({length:10},(_,i)=>`<span class="dot ${i<extra?'':'empty'}"></span>`).join('')+'</div>'}return h+'</div>'}
 function base10(t,o){return '<div class="base10">'+Array.from({length:t},()=>'<span class="tenbar"></span>').join('')+Array.from({length:o},()=>'<span class="one"></span>').join('')+'</div>'}
 function fractionVisual(n,d){return '<div class="fractionbar">'+Array.from({length:d},(_,i)=>`<span class="fracpart ${i<n?'shaded':''}"></span>`).join('')+'</div>'}
-function clockVisual(hour,minute){const hourDeg=((hour%12)+(minute/60))*30-90, minDeg=minute*6-90;return `<div class="clock"><span class="num n12">12</span><span class="num n3">3</span><span class="num n6">6</span><span class="num n9">9</span><span class="hand" style="width:43px;transform:rotate(${hourDeg}deg)"></span><span class="hand" style="width:59px;transform:rotate(${minDeg}deg)"></span></div>`}
+function clockVisual(hour,minute){const hourDeg=((hour%12)+(minute/60))*30-90,minDeg=minute*6-90;return `<div class="clock"><span class="num n12">12</span><span class="num n3">3</span><span class="num n6">6</span><span class="num n9">9</span><span class="hand" style="width:43px;transform:rotate(${hourDeg}deg)"></span><span class="hand" style="width:59px;transform:rotate(${minDeg}deg)"></span></div>`}
 function rulerVisual(len){let ticks='';for(let i=0;i<=20;i++){const x=i*5;ticks+=`<span class="tick" style="left:${x}%;height:${i%5===0?25:14}px"></span>`;if(i%2===0)ticks+=`<span class="lab" style="left:${x}%">${i}</span>`}return `<div class="ruler">${ticks}<span class="rulerobj" style="width:${len*5}%"></span></div>`}
+function rulerOffsetVisual(start,len){let ticks='';for(let i=0;i<=20;i++){const x=i*5;ticks+=`<span class="tick" style="left:${x}%;height:${i%5===0?25:14}px"></span>`;if(i%2===0)ticks+=`<span class="lab" style="left:${x}%">${i}</span>`}return `<div class="ruler">${ticks}<span class="rulerobj" style="left:${start*5}%;width:${len*5}%"></span></div>`}
 function coinsVisual(vals){return '<div class="coins">'+vals.map(v=>`<span class="coin ${v<100?'cent':''}">${v===100?'€1':v+'c'}</span>`).join('')+'</div>'}
 function patternVisual(vals){return '<div class="patternrow">'+vals.map(v=>`<div><div class="tower">${Array.from({length:v},()=>'<span class="tile"></span>').join('')}</div><div class="towerlabel">${v}</div></div>`).join('')+'</div>'}
 function shapesVisual(){return '<div class="shapes"><span class="shape square"></span><span class="shape rect"></span><span class="shape triangle"></span><span class="shape circle"></span></div>'}
+function singleShapeVisual(name,rotate=0){const cls={Square:'square',Rectangle:'rect',Triangle:'triangle',Circle:'circle'}[name]||'square';return `<div class="shapes"><span class="shape ${cls}" style="transform:rotate(${rotate}deg)"></span></div>`}
+function twoShapeVisual(a,b){return `<div class="shapes">${singleShapeVisual(a).replace('<div class="shapes">','').replace('</div>','')}${singleShapeVisual(b).replace('<div class="shapes">','').replace('</div>','')}</div>`}
 function mapVisual(items){let cells=Array.from({length:9},()=>'<div class="mapcell"></div>');for(const [idx,icon] of Object.entries(items))cells[Number(idx)]=`<div class="mapcell">${icon}</div>`;return '<div class="mapgrid">'+cells.join('')+'</div>'}
 function graphVisual(data){return '<div class="graph">'+Object.entries(data).map(([k,v])=>`<strong>${k}</strong><div class="bars">${Array.from({length:v},()=>'<span class="bar"></span>').join('')}</div>`).join('')+'</div>'}
-function singleShapeVisual(name,rotate=0){
- const cls={Square:'square',Rectangle:'rect',Triangle:'triangle',Circle:'circle'}[name]||'square';
- return `<div class="shapes"><span class="shape ${cls}" style="transform:rotate(${rotate}deg)"></span></div>`;
-}
-function twoShapeVisual(a,b){return `<div class="shapes">${singleShapeVisual(a).replace('<div class="shapes">','').replace('</div>','')}${singleShapeVisual(b).replace('<div class="shapes">','').replace('</div>','')}</div>`}
-function rulerOffsetVisual(start,len){
- let ticks='';for(let i=0;i<=20;i++){const x=i*5;ticks+=`<span class="tick" style="left:${x}%;height:${i%5===0?25:14}px"></span>`;if(i%2===0)ticks+=`<span class="lab" style="left:${x}%">${i}</span>`}
- return `<div class="ruler">${ticks}<span class="rulerobj" style="left:${start*5}%;width:${len*5}%"></span></div>`;
-}
 function equationVisual(text){return `<div style="font-size:40px;font-weight:900;letter-spacing:.02em">${text}</div>`}
-function movementVisual(kind,object='▲'){
- const icon=kind==='Slide'?'→':kind==='Turn'?'↻':'⇄';
- return `<div style="display:flex;gap:24px;align-items:center;justify-content:center;font-size:52px"><span>${object}</span><strong style="color:#167a53">${icon}</strong><span>${object}</span></div>`;
-}
+function movementVisual(kind,object='▲'){const icon=kind==='Slide'?'→':kind==='Turn'?'↻':'⇄';return `<div style="display:flex;gap:24px;align-items:center;justify-content:center;font-size:52px"><span>${object}</span><strong style="color:#167a53">${icon}</strong><span>${object}</span></div>`}
+function lineCompareVisual(a,b){return `<div style="display:grid;gap:22px;max-width:420px;margin:auto"><div style="height:9px;border-radius:9px;background:#547667;width:${a}%"></div><div style="height:9px;border-radius:9px;background:#547667;width:${b}%"></div></div>`}
 
-function genN1(r,easy){
- const mode=easy?pick(r,['groups','model']):pick(r,['groups','model','decompose','which']);
- const t=ri(r,1,easy?4:7),o=ri(r,0,easy?5:9),n=t*10+o;
- if(mode==='groups')return qobj('N1',`${t} groups of 10 and ${o} extra ones make how many altogether?`,n,[n-10,n+10,t+o],tenFrame(t,o),'Count the full groups of ten, then add the extra ones.');
- if(mode==='model')return qobj('N1','How many are shown in the groups of ten and extra ones?',n,[n-10,n+10,o*10+t],base10(t,o),'Each long bar is ten and each small block is one.');
- if(mode==='decompose')return qobj('N1',`Which description matches ${n}?`,`${t} tens and ${o} ones`,[`${o} tens and ${t} ones`,`${t+1} tens and ${o} ones`,`${t} tens and ${Math.max(0,o-1)} ones`],`<div style="font-size:50px;font-weight:900">${n}</div>`,'Think about how many full tens and how many ones are in the number.');
- const opts=shuffle(r,[n,n+10,Math.max(0,n-10),t+o]);return qobj('N1',`Which number is made from ${t} full tens and ${o} ones?`,n,opts.filter(x=>x!==n),'','A full ten is worth 10, then add the ones.');
+function genN1(r,level,easy=false){
+ level=clampLevel(level);const tMax=easy?2:[3,5,7][level],oMax=easy?4:[5,9,9][level],t=ri(r,1,tMax),o=ri(r,0,oMax),n=t*10+o;
+ const modes=easy||level===0?['groups','model']:level===1?['groups','model','decompose']:['groups','model','decompose','which'];const mode=pick(r,modes);
+ if(mode==='groups')return qobj('N1',`${t} group${t===1?'':'s'} of 10 and ${o} extra one${o===1?'':'s'} make how many altogether?`,n,[n+10,Math.max(0,n-10),t+o],tenFrame(t,o),'Count the full groups of ten, then add the extra ones.','groups');
+ if(mode==='model')return qobj('N1','How many are shown altogether?',n,[n+10,Math.max(0,n-10),t+o],base10(t,o),'Each long bar is ten and each small block is one.','model');
+ if(mode==='decompose')return qobj('N1',`Which description matches ${n}?`,`${t} tens and ${o} ones`,[`${o} tens and ${t} ones`,`${t+1} tens and ${o} ones`,`${t} tens and ${Math.max(0,o-1)} ones`],`<div style="font-size:50px;font-weight:900">${n}</div>`,'Think about the full tens first, then the ones.','decompose');
+ return qobj('N1',`Which number is made from ${t} tens and ${o} ones?`,n,[n+10,Math.max(0,n-1),o*10+t],'','Build the number from the tens first, then the ones.','which');
 }
-function genN4(r,easy){
- const t=ri(r,2,9),o=ri(r,1,9),n=t*10+o,mode=easy?pick(r,['onesValue','tensValue']):pick(r,['onesValue','tensValue','tensDigit','onesDigit','compare']);
- if(mode==='onesValue')return qobj('N4',`In ${n}, what value does the ${o} have?`,o,[o*10,t,n],`<div style="font-size:62px;font-weight:900">${t}<span style="color:#167a53">${o}</span></div>`,'The right-hand digit is in the ones place.');
- if(mode==='tensValue')return qobj('N4',`In ${n}, what value does the ${t} have?`,t*10,[t,o*10,n],`<div style="font-size:62px;font-weight:900"><span style="color:#167a53">${t}</span>${o}</div>`,'The left-hand digit is in the tens place, so it is worth that many tens.');
- if(mode==='tensDigit')return qobj('N4',`Which digit is in the tens place in ${n}?`,t,[o,t*10,n],'','The tens digit is the digit on the left in a two-digit number.');
- if(mode==='onesDigit')return qobj('N4',`Which digit is in the ones place in ${n}?`,o,[t,o*10,n],'','The ones digit is the digit on the right.');
- const n2=o*10+t;return qobj('N4',`Which number has ${t} tens and ${o} ones?`,n,[n2,n+10,n-1],'','Build the number from the tens first, then the ones.');
+function genN4(r,level,easy=false){
+ level=clampLevel(level);const t=ri(r,1,easy?4:[5,7,9][level]),o=ri(r,1,9),n=t*10+o;const modes=easy||level===0?['onesValue','tensValue']:level===1?['onesValue','tensValue','tensDigit','onesDigit']:['onesValue','tensValue','tensDigit','onesDigit','which'];const mode=pick(r,modes);
+ if(mode==='onesValue')return qobj('N4',`In ${n}, what value does the ${o} have?`,o,[o*10,t,n],`<div style="font-size:62px;font-weight:900">${t}<span style="color:#167a53">${o}</span></div>`,'The right-hand digit is in the ones place.','ones-value');
+ if(mode==='tensValue')return qobj('N4',`In ${n}, what value does the ${t} have?`,t*10,[t,o*10,n],`<div style="font-size:62px;font-weight:900"><span style="color:#167a53">${t}</span>${o}</div>`,'The left-hand digit is in the tens place.','tens-value');
+ if(mode==='tensDigit')return qobj('N4',`Which digit is in the tens place in ${n}?`,t,[o,t+1,n],'','The tens digit is on the left in a two-digit number.','tens-digit');
+ if(mode==='onesDigit')return qobj('N4',`Which digit is in the ones place in ${n}?`,o,[t,o+1,n],'','The ones digit is on the right.','ones-digit');
+ return qobj('N4',`Which number has ${t} tens and ${o} ones?`,n,[o*10+t,n+10,Math.max(10,n-1)],'','Put the tens and ones together.','which');
 }
-function genN5(r,easy){
- const t=ri(r,1,easy?5:9),o=ri(r,0,easy?5:9),n=t*10+o,mode=easy?pick(r,['make','read']):pick(r,['make','read','missingTens','missingOnes']);
- if(mode==='make')return qobj('N5',`${t} tens and ${o} ones make what number?`,n,[t+o,o*10+t,n+10],base10(t,o),'Each ten is worth 10, then add the ones.');
- if(mode==='read')return qobj('N5',`How many tens and ones are in ${n}?`,`${t} tens and ${o} ones`,[`${o} tens and ${t} ones`,`${t+1} tens and ${o} ones`,`${t} tens and ${o+1} ones`],`<div style="font-size:52px;font-weight:900">${n}</div>`,'Read the tens digit first and the ones digit second.');
- if(mode==='missingTens')return qobj('N5',`${n} has how many tens?`,t,[o,t*10,t+1],'','The tens digit tells how many groups of ten there are.');
- return qobj('N5',`${n} has how many ones?`,o,[t,o+1,o*10],'','The ones digit tells how many single ones there are.');
+function genN5(r,level,easy=false){
+ level=clampLevel(level);const t=ri(r,1,easy?3:[4,7,9][level]),o=ri(r,0,easy?5:9),n=t*10+o;const modes=easy||level===0?['make','read']:level===1?['make','read','missingTens']:['make','read','missingTens','missingOnes'];const mode=pick(r,modes);
+ if(mode==='make')return qobj('N5',`${t} tens and ${o} ones make what number?`,n,[t+o,o*10+t,n+10],base10(t,o),'Each ten is worth 10, then add the ones.','make');
+ if(mode==='read')return qobj('N5',`How many tens and ones are in ${n}?`,`${t} tens and ${o} ones`,[`${o} tens and ${t} ones`,`${t+1} tens and ${o} ones`,`${t} tens and ${Math.min(9,o+1)} ones`],`<div style="font-size:52px;font-weight:900">${n}</div>`,'Read the tens digit first and the ones digit second.','read');
+ if(mode==='missingTens')return qobj('N5',`${n} has how many tens?`,t,[o,t+1,Math.max(0,t-1)],'','The left digit tells how many tens there are.','missing-tens');
+ return qobj('N5',`${n} has how many ones?`,o,[t,Math.min(9,o+1),Math.max(0,o-1)],'','The right digit tells how many ones there are.','missing-ones');
 }
-function genN10(r,easy){
- let tens=ri(r,1,easy?3:6),ones=ri(r,easy?7:5,9),b=ri(r,easy?2:3,easy?5:9);if(ones+b<10)b=10-ones+ri(r,0,2);const a=tens*10+ones,c=a+b,mode=easy?pick(r,['sum','bridge']):pick(r,['sum','missing','story','bridge']);
- if(mode==='sum')return qobj('N10',`${a} + ${b} = ?`,c,numChoices(c),equationVisual(`${a} + ${b}`),'Make the next ten first, then add what is left.');
- if(mode==='missing')return qobj('N10',`${a} + □ = ${c}. What belongs in the box?`,b,[b-1,b+1,10-b],equationVisual(`${a} + □ = ${c}`),'Think about how many more are needed to get from the first number to the total.');
- if(mode==='story')return qobj('N10',`There are ${a} stickers and ${b} more are added. How many stickers are there now?`,c,numChoices(c),'','Add the new stickers to the starting amount.');
- const toTen=(tens+1)*10-a;return qobj('N10',`To solve ${a} + ${b}, how many of the ${b} can you add first to reach ${(tens+1)*10}?`,toTen,[toTen-1,toTen+1,b],equationVisual(`${a} + ${b}`),'Reaching the next ten can make the addition easier.');
+function genN10(r,level,easy=false){
+ level=clampLevel(level);let a,b;
+ if(easy){a=ri(r,6,9);b=ri(r,1,3);if(a+b<10)b=10-a;}
+ else if(level===0){a=ri(r,7,9);b=ri(r,2,5);if(a+b<10)b=10-a+1;}
+ else {const tens=level===1?ri(r,1,2):ri(r,2,4),ones=ri(r,6,9);a=tens*10+ones;b=ri(r,2,level===1?5:7);if(ones+b<10)b=10-ones+1;}
+ const c=a+b,modes=easy||level===0?['sum','story','bridge']:['sum','story','bridge','missing'],mode=pick(r,modes),nextTen=Math.ceil(a/10)*10,toTen=nextTen-a;
+ if(mode==='sum')return qobj('N10',`${a} + ${b} = ?`,c,numChoices(c),equationVisual(`${a} + ${b}`),'A useful strategy is to make the next ten first.','sum');
+ if(mode==='story')return qobj('N10',`There are ${a} counters and ${b} more are added. How many are there now?`,c,numChoices(c),'','Add the new counters to the starting amount.','story');
+ if(mode==='bridge')return qobj('N10',`To work out ${a} + ${b}, how many can you add first to reach ${nextTen}?`,toTen,[Math.max(1,toTen-1),toTen+1,b],equationVisual(`${a} + ${b}`),'Reaching the next ten can make the addition easier.','bridge');
+ return qobj('N10',`${a} + □ = ${c}. What belongs in the box?`,b,[Math.max(1,b-1),b+1,b+2],equationVisual(`${a} + □ = ${c}`),'Think about how many more are needed.','missing');
 }
-function genN11(r,easy){
- let tens=ri(r,2,easy?4:7),ones=ri(r,1,easy?5:8),b=ri(r,ones+1,easy?8:9),a=tens*10+ones,c=a-b,mode=easy?pick(r,['difference','bridge']):pick(r,['difference','missing','story','bridge']);
- if(mode==='difference')return qobj('N11',`${a} − ${b} = ?`,c,numChoices(c),equationVisual(`${a} − ${b}`),'Step back to the previous ten, then subtract the rest.');
- if(mode==='missing')return qobj('N11',`${a} − □ = ${c}. What belongs in the box?`,b,[b-1,b+1,Math.max(1,b-2)],equationVisual(`${a} − □ = ${c}`),'Ask how much was taken away to get from the starting number to the answer.');
- if(mode==='story')return qobj('N11',`There are ${a} counters. ${b} are taken away. How many are left?`,c,numChoices(c),'','Subtract the amount that was taken away.');
- const toTen=ones;return qobj('N11',`To solve ${a} − ${b}, how many can you subtract first to reach ${tens*10}?`,toTen,[Math.max(1,toTen-1),toTen+1,b],equationVisual(`${a} − ${b}`),'First step back to the previous ten.');
+function genN11(r,level,easy=false){
+ level=clampLevel(level);let a,b;
+ if(easy){a=ri(r,7,10);b=ri(r,2,Math.min(5,a-2));}
+ else if(level===0){const ones=ri(r,2,8);a=10+ones;b=ri(r,ones+1,Math.min(9,ones+5));}
+ else {const tens=level===1?ri(r,2,3):ri(r,3,5),ones=ri(r,1,7);a=tens*10+ones;b=ri(r,ones+1,Math.min(9,ones+6));}
+ const c=a-b,modes=easy||level===0?['difference','story']:['difference','story','bridge','missing'],mode=pick(r,modes),prevTen=Math.floor(a/10)*10,toTen=a-prevTen;
+ if(mode==='difference')return qobj('N11',`${a} − ${b} = ?`,c,numChoices(c),equationVisual(`${a} − ${b}`),'Step back carefully and check what remains.','difference');
+ if(mode==='story')return qobj('N11',`There are ${a} counters. ${b} are taken away. How many are left?`,c,numChoices(c),'','Take away the amount that was removed.','story');
+ if(mode==='bridge')return qobj('N11',`To work out ${a} − ${b}, how many can you subtract first to reach ${prevTen}?`,toTen,[Math.max(1,toTen-1),toTen+1,b],equationVisual(`${a} − ${b}`),'Stepping back to the previous ten can help.','bridge');
+ return qobj('N11',`${a} − □ = ${c}. What belongs in the box?`,b,[Math.max(1,b-1),b+1,b+2],equationVisual(`${a} − □ = ${c}`),'Ask how much was taken away.','missing');
 }
-function genN16(r,easy){
- const contexts=['paper strip','chocolate bar','ribbon','flag','shape','card'],context=pick(r,contexts);
- const mode=easy?pick(r,['shade','parts','share']):pick(r,['shade','parts','equivalent','name','unshaded','whole','share','compare']);
- const d=easy?pick(r,[2,4]):pick(r,[2,4]),n=ri(r,1,d-1),frac=`${n}/${d}`;
- if(mode==='shade')return qobj('N16',`Look at the ${context}. What fraction is shaded?`,frac,d===4?['1/4','1/2','3/4'].filter(x=>x!==frac):['1/4','2/2','1/3'],fractionVisual(n,d),'Fractions describe equal parts of one whole.');
- if(mode==='parts')return qobj('N16',`This ${context} is split into ${d} equal parts. What is one equal part called?`,d===2?'one half':'one quarter',d===2?['one quarter','one third','one whole']:['one half','one third','one whole'],fractionVisual(1,d),'The fraction name tells how many equal parts make the whole.');
- if(mode==='equivalent')return qobj('N16',`The ${context} is split into 4 equal parts and 2 are shaded. Which fraction is the same amount?`,'1/2',['1/4','3/4','1/3'],fractionVisual(2,4),'Two quarters cover the same amount as one half.');
- if(mode==='name')return qobj('N16',`${n} of the ${d} equal parts of the ${context} are shaded. Which fraction describes that?`,frac,d===4?['1/4','1/2','3/4'].filter(x=>x!==frac):['1/4','2/2','1/3'],fractionVisual(n,d),'The top number counts the shaded parts and the bottom number counts all equal parts.');
- if(mode==='unshaded'){
-  const u=d-n,ans=`${u}/${d}`;return qobj('N16',`${n} of ${d} equal parts of the ${context} are shaded. What fraction is NOT shaded?`,ans,d===4?['1/4','1/2','3/4'].filter(x=>x!==ans):['1/4','2/2','1/3'],fractionVisual(n,d),'Count the equal parts that are not shaded.');
- }
- if(mode==='whole')return qobj('N16',`How many ${d===2?'halves':'quarters'} make one whole ${context}?`,d,[1,3,4].filter(x=>x!==d),fractionVisual(d,d),`A whole has ${d} ${d===2?'halves':'quarters'}.`);
- if(mode==='share'){
-  const people=d;return qobj('N16',`${people} children share one ${context} equally. What fraction does each child get?`,d===2?'1/2':'1/4',d===2?['1/4','2/2','1/3']:['1/2','2/4','3/4'],fractionVisual(1,d),'Equal sharing means each child gets one of the equal parts.');
- }
- return qobj('N16',`Which is the larger fraction of the same ${context}?`,'1/2',['1/4'],`<div style="display:grid;gap:12px"><div>${fractionVisual(1,2)}</div><div>${fractionVisual(1,4)}</div></div>`,'One half is larger than one quarter of the same whole.');
+function genN16(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?pick(r,['half','share2']):level===1?pick(r,['half','quarter','nameQuarter','share4']):pick(r,['half','quarter','nameQuarter','share4','equivalent','compare']);
+ if(mode==='half')return qobj('N16','What fraction of the shape is shaded?','1/2',['1/4','2/2','1/3'],fractionVisual(1,2),'One of two equal parts is one half.','half');
+ if(mode==='share2')return qobj('N16','Two children share one whole equally. What fraction does each child get?','1/2',['1/4','2/2','1/3'],fractionVisual(1,2),'Two equal shares make halves.','share-half');
+ if(mode==='quarter')return qobj('N16','What fraction of the shape is shaded?','1/4',['1/2','2/4','3/4'],fractionVisual(1,4),'One of four equal parts is one quarter.','quarter');
+ if(mode==='nameQuarter')return qobj('N16','The shape is split into 4 equal parts. What is one equal part called?','one quarter',['one half','one third','one whole'],fractionVisual(1,4),'Four equal parts are quarters.','name-quarter');
+ if(mode==='share4')return qobj('N16','Four children share one whole equally. What fraction does each child get?','1/4',['1/2','2/4','3/4'],fractionVisual(1,4),'Four equal shares make quarters.','share-quarter');
+ if(mode==='equivalent')return qobj('N16','Two quarters are shaded. Which fraction is the same amount?','1/2',['1/4','3/4','1/3'],fractionVisual(2,4),'Two quarters cover the same amount as one half.','equivalent');
+ return qobj('N16','Which is larger when the wholes are the same size?','1/2',['1/4'],`<div style="display:grid;gap:12px"><div>${fractionVisual(1,2)}</div><div>${fractionVisual(1,4)}</div></div>`,'One half is larger than one quarter of the same whole.','compare');
 }
-function genM1(r,easy){
- const mode=easy?pick(r,['length','capacity']):pick(r,['length','shorter','weight','capacity','order']);
- if(mode==='weight'){
-  const a=ri(r,1,5),b=a+ri(r,1,4);return qobj('M1',`Bag A weighs ${a} kg. Bag B weighs ${b} kg. Which bag is heavier?`,'Bag B',['Bag A','They weigh the same'],'','Compare the numbers because both measurements use kilograms.');
- }
- if(mode==='capacity'){
-  const a=ri(r,2,6)*100,b=a+pick(r,[100,200,300]);return qobj('M1',`Cup A holds ${a} mL. Cup B holds ${b} mL. Which holds more?`,'Cup B',['Cup A','They hold the same'],'','When the unit is the same, the larger number shows the greater capacity.');
- }
- let a=ri(r,15,easy?45:75),b=a+ri(r,easy?5:2,easy?20:18);if(r()<.5)[a,b]=[b,a];
- if(mode==='shorter'){const ans=a<b?'Ribbon A':'Ribbon B';return qobj('M1',`Ribbon A is ${a} cm. Ribbon B is ${b} cm. Which is shorter?`,ans,['Ribbon A','Ribbon B','They are the same'].filter(x=>x!==ans),'','Compare the two lengths using the same unit.');}
- if(mode==='order'){
-  const c=b+ri(r,3,12),vals=shuffle(r,[a,b,c]);const ans=Math.max(...vals);return qobj('M1',`Which is the longest length: ${vals[0]} cm, ${vals[1]} cm or ${vals[2]} cm?`,`${ans} cm`,vals.filter(x=>x!==ans).map(x=>`${x} cm`),'','The greatest number of centimetres is the longest length.');
- }
- const ans=a>b?'Ribbon A':'Ribbon B';return qobj('M1',`Ribbon A is ${a} cm. Ribbon B is ${b} cm. Which is longer?`,ans,['Ribbon A','Ribbon B','They are the same'].filter(x=>x!==ans),'','Compare the two measurements using centimetres.');
+function genM1(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?pick(r,['visualLonger','visualShorter']):level===1?pick(r,['visualLonger','length','capacity','weight']):pick(r,['length','capacity','weight','order']);
+ if(mode==='visualLonger'||mode==='visualShorter'){const a=ri(r,35,55),b=ri(r,70,95),askLong=mode==='visualLonger';return qobj('M1',`Which line is ${askLong?'longer':'shorter'}?`,askLong?'Bottom line':'Top line',[askLong?'Top line':'Bottom line','They are the same'],lineCompareVisual(a,b),'Compare the two lines from the same starting point.',mode);}
+ if(mode==='length'){const a=ri(r,10,level===1?30:45),b=a+ri(r,2,10);return qobj('M1',`Ribbon A is ${a} cm. Ribbon B is ${b} cm. Which is longer?`,'Ribbon B',['Ribbon A','They are the same'],'','Both lengths use centimetres, so compare the numbers.','length');}
+ if(mode==='capacity'){const a=pick(r,[100,200,300,400]),b=a+100;return qobj('M1',`Cup A holds ${a} mL. Cup B holds ${b} mL. Which holds more?`,'Cup B',['Cup A','They hold the same'],'','Both use millilitres, so compare the amounts.','capacity');}
+ if(mode==='weight'){const a=ri(r,1,4),b=a+1;return qobj('M1',`Bag A weighs ${a} kg. Bag B weighs ${b} kg. Which is heavier?`,'Bag B',['Bag A','They weigh the same'],'','Both use kilograms, so compare the amounts.','weight');}
+ const vals=shuffle(r,[ri(r,10,25),ri(r,30,45),ri(r,50,65)]),ans=Math.max(...vals);return qobj('M1',`Which is the longest length: ${vals[0]} cm, ${vals[1]} cm or ${vals[2]} cm?`,`${ans} cm`,vals.filter(x=>x!==ans).map(x=>`${x} cm`),'','The greatest number of centimetres is the longest length.','order');
 }
-function genM3(r,easy){
- const mode=easy?pick(r,['fromZero','offset','startZero','unit']):pick(r,['fromZero','offset','startZero','unit']);
- const len=ri(r,easy?3:5,easy?9:15);
- if(mode==='fromZero')return qobj('M3','How long is the object on the ruler?',`${len} cm`,[`${len-1} cm`,`${len+1} cm`,`${len+2} cm`],rulerVisual(len),'Start at 0 and read the mark where the object ends.');
- if(mode==='offset'){
-  const start=ri(r,1,4),l=ri(r,4,10),end=start+l;return qobj('M3',`The object starts at ${start} cm and ends at ${end} cm. How long is it?`,`${l} cm`,[`${end} cm`,`${l-1} cm`,`${l+1} cm`],rulerOffsetVisual(start,l),'Length is the distance from the starting mark to the ending mark.');
- }
- if(mode==='startZero')return qobj('M3','Where should the end of an object usually be lined up before measuring with this ruler?','0 cm',['1 cm','2 cm','10 cm'],rulerVisual(len),'For a direct measurement, line one end up with the 0 mark.');
- return qobj('M3',`A pencil measures ${len} centimetres. Which unit should be written with the answer?`,'cm',['m','kg','L'],'','Centimetres are written as cm.');
+function genM3(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?'fromZero':level===1?pick(r,['fromZero','startZero','unit']):pick(r,['fromZero','startZero','unit','offset']);
+ if(mode==='fromZero'){const len=ri(r,3,easy?6:level===0?8:12);return qobj('M3','How long is the object on the ruler?',`${len} cm`,[`${Math.max(1,len-1)} cm`,`${len+1} cm`,`${len+2} cm`],rulerVisual(len),'Start at 0 and read the mark where the object ends.','from-zero');}
+ if(mode==='startZero')return qobj('M3','Where should one end of an object be lined up for a direct ruler measurement?','0 cm',['1 cm','2 cm','10 cm'],rulerVisual(6),'Line one end up with the 0 mark.','start-zero');
+ if(mode==='unit')return qobj('M3','Which unit is suitable for the length of a pencil?','cm',['kg','L','€'],'','A short length like a pencil can be measured in centimetres.','unit');
+ const start=ri(r,1,3),len=ri(r,4,8),end=start+len;return qobj('M3',`The object starts at ${start} cm and ends at ${end} cm. How long is it?`,`${len} cm`,[`${end} cm`,`${len-1} cm`,`${len+1} cm`],rulerOffsetVisual(start,len),'Length is the distance between the starting and ending marks.','offset');
 }
-function genM7(r,easy){
- const h=ri(r,1,11),m=easy?0:pick(r,[0,30]),ans=`${h}:${String(m).padStart(2,'0')}`,mode=easy?pick(r,['clockToDigital','wordsToDigital','digitalToWords','minuteHand']):pick(r,['clockToDigital','wordsToDigital','digitalToWords','minuteHand']);
- if(mode==='clockToDigital')return qobj('M7','Which digital time matches this clock?',ans,[`${h}:30`,`${h===11?12:h+1}:00`,`${h===1?12:h-1}:30`].filter(x=>x!==ans),clockVisual(h,m),'The long hand tells the minutes; the short hand tells the hour.');
- const words=m===0?`${h} o’clock`:`half past ${h}`;
- if(mode==='wordsToDigital')return qobj('M7',`Which digital time means ${words}?`,ans,[`${h}:30`,`${h===11?12:h+1}:00`,`${h===1?12:h-1}:30`].filter(x=>x!==ans),'','O’clock means :00 and half past means :30.');
- if(mode==='digitalToWords')return qobj('M7',`How would you say ${ans}?`,words,[m===0?`half past ${h}`:`${h} o’clock`,`half past ${h===11?12:h+1}`,`${h===11?12:h+1} o’clock`].filter(x=>x!==words),'','Match :00 with o’clock and :30 with half past.');
- return qobj('M7',`At ${ans}, where does the minute hand point?`,m===0?'12':'6',m===0?['3','6','9']:['12','3','9'],clockVisual(h,m),'At o’clock the minute hand points to 12; at half past it points to 6.');
+function genM7(r,level,easy=false){
+ level=clampLevel(level);const hour=ri(r,1,12),mode=easy||level===0?'oclock':level===1?pick(r,['oclock','halfPast']):pick(r,['oclock','halfPast','oneHourLater']);
+ if(mode==='oclock')return qobj('M7','Which digital time matches this clock?',`${hour}:00`,[`${hour}:30`,`${hour===12?1:hour+1}:00`,`12:${String(hour).padStart(2,'0')}`],clockVisual(hour,0),'At o’clock, the minute hand points to 12.','oclock');
+ if(mode==='halfPast')return qobj('M7','Which digital time matches this clock?',`${hour}:30`,[`${hour}:00`,`${hour===12?1:hour+1}:30`,`3:${String(hour).padStart(2,'0')}`],clockVisual(hour,30),'At half past, the minute hand points to 6.','half-past');
+ return qobj('M7',`It is ${hour}:00 now. What time will it be one hour later?`,`${hour===12?1:hour+1}:00`,[`${hour}:30`,`${hour}:00`,`${hour===11?1:hour+2}:00`],'','One hour later moves to the next hour.','one-hour');
 }
-function genM9(r,easy){
- const mode=pick(r,['total','price','make','change']),wording=ri(r,0,2),items=['toy','book','pencil case','game'],item=pick(r,items);
- if(mode==='total'){
-  const pool=easy?[100,50,20,20,10,10]:[100,50,20,20,10,10,5,5];const coins=shuffle(r,pool).slice(0,ri(r,easy?2:3,easy?4:5));const c=coins.reduce((a,b)=>a+b,0),ans=money(c),texts=['How much money is there altogether?','What is the total value of these coins?','Count the coins. How much is shown?'];
-  return qobj('M9',texts[wording],ans,[money(Math.max(5,c-10)),money(c+10),money(c+20)].filter(x=>x!==ans),coinsVisual(coins),'Add the value of each coin.');
- }
- if(mode==='price'){
-  const cents=pick(r,[40,50,60,70,80,90,100,120,130,150,170,190]),texts=[`A ${item} costs ${money(cents)}. Which amount matches the price?`,`Which money amount is exactly the price of this ${item}: ${money(cents)}?`,`The price tag says ${money(cents)}. Which answer shows that amount?`];
-  return qobj('M9',texts[wording],money(cents),[money(Math.max(10,cents-20)),money(cents+10),money(cents+50)],'','Read the euro and cent amount carefully.');
- }
- if(mode==='make'){
-  const options={50:['20c + 20c + 10c',['20c + 10c','50c + 20c','10c + 10c']],100:['50c + 50c',['50c + 20c','€1 + 20c','20c + 20c']],120:['€1 + 20c',['€1 + 10c','50c + 50c','€1 + 50c']],150:['€1 + 50c',['€1 + 20c','50c + 50c','€1 + €1']],200:['€1 + €1',['€1 + 50c','50c + 50c','€1 + 20c']]},target=pick(r,Object.keys(options).map(Number)),[ans,dis]=options[target],texts=[`Which coins make exactly ${money(target)}?`,`Choose the coin combination worth ${money(target)}.`,`Which answer has a total value of ${money(target)}?`];
-  return qobj('M9',texts[wording],ans,dis,'','Add the coin values and look for the exact total.');
- }
- const price=pick(r,[110,120,130,140,150,160,170,180,190]),paid=200,change=paid-price,texts=[`You pay €2 for a ${item} that costs ${money(price)}. How much change should you get?`,`A ${item} costs ${money(price)} and you give €2. What change is due?`,`From €2, how much is left after paying ${money(price)} for a ${item}?`];
- return qobj('M9',texts[wording],money(change),[money(change+10),money(Math.max(10,change-10)),money(price)].filter(x=>x!==money(change)),'','Change is the amount left after subtracting the price from the amount paid.');
+function genM9(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?pick(r,['coinValue','twoCoins']):level===1?pick(r,['twoCoins','euroPlus','makeEuro']):pick(r,['twoCoins','euroPlus','makeEuro','threeCoins','sameAmount']);
+ if(mode==='coinValue'){const v=pick(r,[10,20,50]);return qobj('M9',`Which coin is worth ${v} cent?`,`${v}c`,[...([10,20,50].filter(x=>x!==v).map(x=>`${x}c`))],coinsVisual([10,20,50]),'Read the value written on the coin.','coin-value');}
+ if(mode==='twoCoins'){const vals=shuffle(r,[10,20,50]).slice(0,2),sum=vals[0]+vals[1];return qobj('M9',`How much are these coins worth altogether?`,money(sum),[money(Math.max(10,sum-10)),money(sum+10),money(sum+20)],coinsVisual(vals),'Add the coin values.','two-coins');}
+ if(mode==='euroPlus'){const c=pick(r,[10,20,50]);return qobj('M9',`How much is €1 plus ${c}c?`,money(100+c),[money(100+Math.max(0,c-10)),money(100+c+10),money(c)],coinsVisual([100,c]),'Keep the euro and add the cents.','euro-plus');}
+ if(mode==='makeEuro')return qobj('M9','Which pair of coins makes €1?','50c + 50c',['20c + 20c','50c + 20c','20c + 10c'],'','Two 50c coins make 100c, which is €1.','make-euro');
+ if(mode==='threeCoins'){const vals=pick(r,[[50,20,10],[50,20,20],[20,20,10]]),sum=vals.reduce((a,b)=>a+b,0);return qobj('M9','How much are these three coins worth altogether?',money(sum),[money(sum-10),money(sum+10),money(sum+20)],coinsVisual(vals),'Add the coin values carefully.','three-coins');}
+ return qobj('M9','Which is another way to make €1?','50c + 20c + 20c + 10c',['50c + 20c + 10c','20c + 20c + 20c','50c + 10c'],'','Different coin combinations can have the same total value.','same-amount');
 }
-function genA1(r,easy){
- const step=easy?pick(r,[1,2]):pick(r,[1,2,3,4]),start=ri(r,1,5),vals=[start,start+step,start+2*step],next=start+3*step,mode=easy?pick(r,['next','rule','missing','later']):pick(r,['next','rule','missing','later']);
- if(mode==='next')return qobj('A1','This pattern grows by the same amount each time. How many tiles should come next?',next,[next-step,next+1,next+step],patternVisual(vals),'Look at how many tiles are added from one step to the next.');
- if(mode==='rule')return qobj('A1',`The pattern has ${vals.join(', ')} tiles. What is the growth rule?`,`Add ${step}`,[`Add ${step+1}`,`Take away ${step}`,`Add ${Math.max(1,step-1)}`],patternVisual(vals),'Compare neighbouring steps to find what is added each time.');
- if(mode==='missing')return qobj('A1',`${start}, ${start+step}, __, ${next}. What belongs in the missing step?`,start+2*step,[start+step,start+3*step,start+2*step+1],'','Keep applying the same growth rule.');
- const fifth=start+4*step;return qobj('A1',`A growing pattern starts ${start}, ${start+step}, ${start+2*step}. If it keeps growing the same way, what is Step 5?`,fifth,[fifth-step,fifth+step,fifth+1],'','Continue the same amount of growth for two more steps.');
+function genA1(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?pick(r,['repeat','grow1']):level===1?pick(r,['grow1','grow2','rule2']):pick(r,['grow2','grow3','rule2','rule3']);
+ if(mode==='repeat'){const first=pick(r,['●','■','▲']),second=first==='●'?'■':'●';return qobj('A1',`What comes next? ${first} ${second} ${first} ${second} __`,first,[second,'▲'],'','The two-shape unit repeats in the same order.','repeat');}
+ const step=mode.includes('3')?3:mode.includes('2')?2:1,start=step===3?1:step===2?2:1,vals=[start,start+step,start+2*step],next=start+3*step;
+ if(mode.startsWith('rule'))return qobj('A1',`Look at the growing pattern. What is changing each time?`,`It adds ${step}`,[`It adds ${step+1}`,`It takes away ${step}`,'It stays the same'],patternVisual(vals),`Each step has ${step} more tile${step===1?'':'s'} than the one before.`,'rule');
+ return qobj('A1','How many tiles should come next in this growing pattern?',next,[next-1,next+1,next+step],patternVisual(vals),`The pattern grows by ${step} each time.`,'grow');
 }
-function genA2(r,easy){
- const step=easy?pick(r,[1,2]):pick(r,[2,5,10]),start=step===10?ri(r,1,4)*10:ri(r,1,18),mode=easy?pick(r,['next','missing']):pick(r,['next','missing','rule','back']);
+function genA2(r,level,easy=false){
+ level=clampLevel(level);let step,start,mode;
+ if(easy){step=1;start=ri(r,1,5);mode='next';}
+ else if(level===0){step=pick(r,[1,2,5]);start=step===1?ri(r,1,5):step===2?pick(r,[0,2,4]):pick(r,[0,5,10]);mode=pick(r,['next','missing']);}
+ else if(level===1){step=pick(r,[2,5,10]);start=step===2?pick(r,[0,2,4,6]):step===5?pick(r,[0,5,10]):pick(r,[0,10]);mode=pick(r,['next','missing','rule']);}
+ else {step=pick(r,[2,5,10]);start=step===2?ri(r,1,7):step===5?pick(r,[5,10,15]):pick(r,[0,10]);mode=pick(r,['next','missing','rule']);}
  const vals=[start,start+step,start+2*step,start+3*step],next=start+4*step;
- if(mode==='next')return qobj('A2',`${vals.join(', ')}, __. What comes next?`,next,[next-step,next+1,next+step],'','Find the amount that is added each time.');
- if(mode==='missing')return qobj('A2',`${start}, ${start+step}, __, ${start+3*step}. What number is missing?`,start+2*step,[start+step,start+3*step,start+2*step+1],'','Use the same step between every pair of numbers.');
- if(mode==='rule')return qobj('A2',`What rule is used in ${vals.join(', ')}?`,`Count on in ${step}s`,[`Count on in ${step+1}s`,`Count back in ${step}s`,`Count on in ${Math.max(1,step-1)}s`],'','Look at the difference between one number and the next.');
- const high=start+4*step;return qobj('A2',`${high}, ${high-step}, ${high-2*step}, __. What comes next?`,high-3*step,[high-2*step,high-4*step,high-3*step+1],'','This sequence is counting backwards by the same step each time.');
+ if(mode==='next')return qobj('A2',`${vals.join(', ')}, __. What comes next?`,next,[next-1,next+1,next+step],equationVisual(vals.join('  ')),`The sequence goes up by ${step} each time.`,'next');
+ if(mode==='missing'){const miss=ri(r,1,2),shown=vals.map((v,i)=>i===miss?'__':v);return qobj('A2',`${shown.join(', ')}. Which number is missing?`,vals[miss],[vals[miss]-1,vals[miss]+1,vals[miss]+step],equationVisual(shown.join('  ')),`The sequence goes up by ${step} each time.`,'missing');}
+ return qobj('A2',`What is the rule for ${vals.join(', ')}?`,`Add ${step}`,[`Add ${step+1}`,`Take away ${step}`,'Add 1'],equationVisual(vals.join('  ')),`Each number is ${step} more than the one before.`,'rule');
 }
-function genA5(r,easy){
- const mode=easy?pick(r,['missingSimple','trueFalse']):pick(r,['balance','missingSimple','trueFalse','whichTrue']);
- if(mode==='missingSimple'){
-  const x=ri(r,2,easy?7:10),add=ri(r,1,5),tot=x+add;return qobj('A5',`□ + ${add} = ${tot}. What belongs in the box?`,x,[x-1,x+1,tot],equationVisual(`□ + ${add} = ${tot}`),'Both sides of the equals sign must have the same value.');
- }
- if(mode==='balance'){
-  const a=ri(r,3,10),b=ri(r,2,8),c=ri(r,1,8),x=a+b-c;if(x<1)return genA5(r,false);return qobj('A5',`${a} + ${b} = □ + ${c}. What belongs in the box?`,x,[x-1,x+1,a+b],equationVisual(`${a} + ${b} = □ + ${c}`),'Work out one side, then make the other side have the same value.');
- }
- if(mode==='trueFalse'){
-  const a=ri(r,2,8),b=ri(r,1,6),same=r()<.5,c=ri(r,1,6),d=same?a+b-c:a+b-c+pick(r,[-2,-1,1,2]);const text=`${a} + ${b} = ${c} + ${d}`;return qobj('A5',`Is this number sentence true? ${text}`,same?'Yes':'No',['Yes','No'].filter(x=>x!==(same?'Yes':'No')),equationVisual(text),'An equals sign means both sides have the same value.');
- }
- const a=ri(r,2,7),b=ri(r,2,7),sum=a+b;const right1=ri(r,1,sum-1),right2=sum-right1;const correct=`${a} + ${b} = ${right1} + ${right2}`;return qobj('A5','Which number sentence is true?',correct,[`${a} + ${b} = ${right1} + ${right2+1}`,`${a} + ${b} = ${right1+1} + ${right2+1}`,`${a} + ${b-1} = ${right1} + ${right2}`],'','Check the value on both sides of each equals sign.');
+function genA5(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?pick(r,['missing','trueSimple']):level===1?pick(r,['missing','balanced','trueSimple']):pick(r,['missing','balanced','trueBalanced']);
+ if(mode==='missing'){const a=ri(r,1,easy?3:level===0?4:6),b=ri(r,2,easy?3:level===0?5:7),total=a+b;return qobj('A5',`${a} + □ = ${total}. What belongs in the box?`,b,[Math.max(0,b-1),b+1,total],equationVisual(`${a} + □ = ${total}`),'The box must make both sides have the same value.','missing');}
+ if(mode==='trueSimple'){const a=ri(r,1,5),b=ri(r,1,4),total=a+b,claim=r()<.5?total:total+1;return qobj('A5',`Is this true? ${a} + ${b} = ${claim}`,claim===total?'Yes':'No',['Yes','No'].filter(x=>x!==(claim===total?'Yes':'No')),equationVisual(`${a} + ${b} = ${claim}`),'The equals sign means both sides have the same value.','true-simple');}
+ if(mode==='balanced'){const a=ri(r,2,6),b=ri(r,1,5),total=a+b,c=ri(r,1,total-1),d=total-c;return qobj('A5',`${a} + ${b} = ${c} + □. What belongs in the box?`,d,[Math.max(0,d-1),d+1,total],equationVisual(`${a} + ${b} = ${c} + □`),'Both sides must have the same total.','balanced');}
+ const a=ri(r,2,6),b=ri(r,1,5),total=a+b,c=ri(r,1,total-1),d=total-c,wrong=d+1,ok=r()<.5;return qobj('A5',`Is this true? ${a} + ${b} = ${c} + ${ok?d:wrong}`,ok?'Yes':'No',['Yes','No'].filter(x=>x!==(ok?'Yes':'No')),equationVisual(`${a} + ${b} = ${c} + ${ok?d:wrong}`),'Work out both sides and compare their values.','true-balanced');
 }
-function genS1(r,easy){
- const rel=pick(r,['right','left','above','below']),pos={right:5,left:3,above:1,below:7}[rel],objects=shuffle(r,[['🌳','⚽','tree','ball'],['⭐','🐞','star','ladybird'],['🏠','🚲','house','bike']]),o=objects[0],items={4:o[0],[pos]:o[1]},mode=easy?pick(r,['describe','place','reverse']):pick(r,['describe','place','reverse']);
- const cap=rel[0].toUpperCase()+rel.slice(1);
- if(mode==='describe')return qobj('S1',`Where is the ${o[3]} in relation to the ${o[2]}?`,cap,['Right','Left','Above','Below'].filter(x=>x!==cap),mapVisual(items),`Use the ${o[2]} as the reference point.`);
- if(mode==='place')return qobj('S1',`The ${o[3]} is ${rel} of the ${o[2]}. Which direction word describes that position?`,cap,['Right','Left','Above','Below'].filter(x=>x!==cap),mapVisual(items),'Look from the reference object to the other object.');
- const opposite={Right:'Left',Left:'Right',Above:'Below',Below:'Above'}[cap];return qobj('S1',`Where is the ${o[2]} in relation to the ${o[3]}?`,opposite,['Right','Left','Above','Below'].filter(x=>x!==opposite),mapVisual(items),'Reverse the relationship when the reference object changes.');
+function genS1(r,level,easy=false){
+ level=clampLevel(level);const items={1:'💧',3:'🪑',4:'🌳',5:'⚽',7:'⭐'},mode=easy||level===0?pick(r,['relative','relative2']):level===1?pick(r,['relative','relative2','moveOne']):pick(r,['relative','relative2','moveOne','twoStep']);
+ if(mode==='relative')return qobj('S1','What is directly to the right of the tree?','Ball',['Bench','Pond','Star'],mapVisual(items),'Look one square to the right of the tree.','relative');
+ if(mode==='relative2')return qobj('S1','What is directly above the tree?','Pond',['Ball','Bench','Star'],mapVisual(items),'Look one square above the tree.','relative2');
+ if(mode==='moveOne')return qobj('S1','Start at the tree and move one square right. Where do you land?','Ball',['Bench','Pond','Star'],mapVisual(items),'A move to the right takes you to the next square.','move-one');
+ return qobj('S1','Start at the pond. Move one square down, then one square right. Where do you land?','Ball',['Tree','Bench','Star'],mapVisual(items),'Follow the directions one step at a time.','two-step');
 }
-function genS4(r,easy){
- const mode=easy?pick(r,['identify','corners','statement','rotated']):pick(r,['identify','corners','statement','pair','rotated']);
- const names=['Square','Rectangle','Triangle','Circle'],name=pick(r,names),rot=pick(r,[0,20,35,45]),wording=ri(r,0,2);
- if(mode==='identify'){
-  const props={Square:'4 equal straight sides',Rectangle:'4 straight sides, with opposite sides the same length',Triangle:'3 straight sides',Circle:'no straight sides'},starts=['Which shape','Find the shape','Which shape name fits something that'];
-  const text=wording===2?`${starts[wording]} has ${props[name]}?`:`${starts[wording]} has ${props[name]}?`;
-  return tagged(qobj('S4',text,name,names.filter(x=>x!==name),shapesVisual(),'Use the shape’s properties rather than its position on the page.'),`identify:${name}`,'identify');
- }
- if(mode==='corners'){
-  const corners={Square:4,Rectangle:4,Triangle:3,Circle:0}[name],texts=[`How many corners does this ${name.toLowerCase()} have?`,`Count the corners on the ${name.toLowerCase()}. How many are there?`,`A ${name.toLowerCase()} is shown. How many corners should it have?`];
-  return tagged(qobj('S4',texts[wording],corners,[0,3,4,5].filter(x=>x!==corners),singleShapeVisual(name,rot),'Count the points where straight sides meet.'),`corners:${name}`,'corners');
- }
- if(mode==='statement'){
-  const correct={Square:'It has 4 straight sides and 4 corners.',Rectangle:'It has 4 straight sides and 4 corners.',Triangle:'It has 3 straight sides and 3 corners.',Circle:'It has no straight sides and no corners.'}[name],texts=[`Which statement is true about this ${name.toLowerCase()}?`,`Which fact correctly describes a ${name.toLowerCase()}?`,`Choose the true statement about the ${name.toLowerCase()}.`];
-  return tagged(qobj('S4',texts[wording],correct,['It has 3 straight sides and 4 corners.','It has 4 equal straight sides and no corners.','It has 1 curved side and 3 corners.'].filter(x=>x!==correct),singleShapeVisual(name,rot),'A shape keeps the same properties even when it is turned.'),`statement:${name}`,'statement');
- }
- if(mode==='pair'){
-  const pairModes=[['Which pair of shapes both have 4 straight sides?','Square and rectangle',['Triangle and circle','Square and triangle','Rectangle and circle']],['Which pair both have at least 3 straight sides?','Square and triangle',['Circle and triangle','Circle and square','Circle and rectangle']],['Which pair both have corners?','Rectangle and triangle',['Circle and triangle','Circle and square','Circle and rectangle']]],m=pairModes[wording];
-  return tagged(qobj('S4',m[0],m[1],m[2],twoShapeVisual('Square','Rectangle'),'Compare the properties the two shapes share.'),`pair:${wording}`,'pair');
- }
- const texts=[`This ${name.toLowerCase()} has been turned. Is it still a ${name.toLowerCase()}?`,`A ${name.toLowerCase()} is turned on its side. What shape is it now?`,`The ${name.toLowerCase()} is rotated. Which shape name still describes it?`];
- const ans=wording===0?'Yes':name;
- return tagged(qobj('S4',texts[wording],ans,wording===0?['No']:names.filter(x=>x!==name),singleShapeVisual(name,rot||35),'Turning a shape does not change its sides or corners.'),`rotated:${name}`,'rotated');
+function genS4(r,level,easy=false){
+ level=clampLevel(level);const mode=easy||level===0?pick(r,['sides3','noStraight','name']):level===1?pick(r,['sides3','noStraight','name','corners','rotated']):pick(r,['sides3','noStraight','name','corners','rotated','fourSides','compare']);
+ if(mode==='sides3')return qobj('S4','Which shape has 3 straight sides?','Triangle',['Circle','Square','Rectangle'],shapesVisual(),'A triangle has 3 straight sides.','sides');
+ if(mode==='noStraight')return qobj('S4','Which shape has no straight sides?','Circle',['Triangle','Square','Rectangle'],shapesVisual(),'A circle has no straight sides.','no-straight');
+ if(mode==='name'){const shape=pick(r,['Square','Rectangle','Triangle','Circle']);return qobj('S4','What shape is shown?',shape,['Square','Rectangle','Triangle','Circle'].filter(x=>x!==shape),singleShapeVisual(shape),'Name the shape by its properties, even if it is turned.','name');}
+ if(mode==='corners'){const shape=pick(r,['Square','Rectangle','Triangle']),count=shape==='Triangle'?3:4;return qobj('S4',`How many corners does this ${shape.toLowerCase()} have?`,count,[count-1,count+1,0],singleShapeVisual(shape),'Count the corners carefully.','corners');}
+ if(mode==='rotated'){const shape=pick(r,['Square','Rectangle','Triangle']);return qobj('S4',`This ${shape.toLowerCase()} has been turned. Is it still a ${shape.toLowerCase()}?`,'Yes',['No'],singleShapeVisual(shape,pick(r,[20,35,45])),'Turning a shape does not change its defining properties.','rotated');}
+ if(mode==='fourSides')return qobj('S4','Which two shapes both have 4 straight sides?','Square and rectangle',['Triangle and circle','Square and triangle','Rectangle and circle'],shapesVisual(),'Squares and rectangles both have 4 straight sides.','four-sides');
+ return qobj('S4','What do a square and a rectangle both have?','4 straight sides',['3 straight sides','No corners','Only curved sides'],twoShapeVisual('Square','Rectangle'),'Look for a property the two shapes share.','compare');
 }
-function genS7(r,easy){
- const objects=pick(r,[['book','▰'],['card','◆'],['tile','▲'],['arrow','➤']]),mode=pick(r,['scenario','meaning','notTurn','mirror','orientation']),kind=pick(r,['Slide','Turn','Flip']);
- const scenarios={Slide:[`A ${objects[0]} moves straight across the table without turning over.`,`A ${objects[0]} moves to a new place but keeps facing the same way.`],Turn:[`A ${objects[0]} rotates around a point.`,`A ${objects[0]} changes which direction it faces by rotating.`],Flip:[`A ${objects[0]} is turned over to make a mirror image.`,`A ${objects[0]} is reflected across a line.`]};
- if(mode==='scenario'){const text=pick(r,scenarios[kind]);return qobj('S7',`${text} What movement is this?`,kind,['Slide','Turn','Flip'].filter(x=>x!==kind),movementVisual(kind,objects[1]),'A slide moves, a turn rotates, and a flip makes a mirror image.');}
- if(mode==='meaning')return qobj('S7',`Which movement means “${kind==='Slide'?'move without rotating or turning over':kind==='Turn'?'rotate around a point':'make a mirror image'}”?`,kind,['Slide','Turn','Flip'].filter(x=>x!==kind),movementVisual(kind,objects[1]),'Match the movement word to what happens to the shape.');
- if(mode==='notTurn')return qobj('S7',`A ${objects[0]} moves 10 cm to the right and still faces exactly the same way. Was it a slide, turn or flip?`,'Slide',['Turn','Flip'],movementVisual('Slide',objects[1]),'A slide changes position without changing orientation.');
- if(mode==='mirror')return qobj('S7',`Which movement would make a mirror image of the ${objects[0]}?`,'Flip',['Slide','Turn'],movementVisual('Flip',objects[1]),'A flip reflects the shape.');
- return qobj('S7',`Which movement changes the direction the ${objects[0]} faces without turning it over?`,'Turn',['Slide','Flip'],movementVisual('Turn',objects[1]),'A turn rotates the shape around a point.');
+function genS7(r,level,easy=false){
+ level=clampLevel(level);const kinds=['Slide','Turn','Flip'],kind=pick(r,kinds),mode=easy||level===0?'name':level===1?pick(r,['name','description']):pick(r,['name','description','identify']);
+ if(mode==='name')return qobj('S7',`What movement is shown?`,kind,kinds.filter(x=>x!==kind),movementVisual(kind),kind==='Slide'?'A slide moves without turning or flipping.':kind==='Turn'?'A turn changes the direction the shape faces.':'A flip reflects the shape.','name');
+ if(mode==='description'){const text=kind==='Slide'?'moves across the page without turning':kind==='Turn'?'turns around a point':'is reflected as if in a mirror';return qobj('S7',`A shape ${text}. Is that a slide, turn or flip?`,kind,kinds.filter(x=>x!==kind),'','Use the movement words slide, turn and flip.','description');}
+ return qobj('S7','Which movement keeps a shape facing the same way while moving it to a new place?','Slide',['Turn','Flip'],movementVisual('Slide'),'A slide changes position without changing the way the shape faces.','identify');
 }
-function makeData(r){
- const sets=[['Apples','Bananas','Oranges','Pears'],['Cats','Dogs','Fish','Rabbits'],['Red','Blue','Green','Yellow'],['Books','Games','Puzzles','Blocks']];
- const labels=pick(r,sets);let vals=shuffle(r,[1,2,3,4,5]);return Object.fromEntries(labels.map((k,i)=>[k,vals[i]]));
+function makeData(r){const names=shuffle(r,['Apples','Bananas','Pears','Oranges']).slice(0,3),vals=shuffle(r,[2,3,4,5]);return Object.fromEntries(names.map((n,i)=>[n,vals[i]]))}
+function genD2(r,level,easy=false){
+ level=clampLevel(level);const data=makeData(r),entries=Object.entries(data),mode=easy||level===0?pick(r,['exact','most']):level===1?pick(r,['exact','most','least']):pick(r,['exact','most','least','difference','total']);
+ if(mode==='exact'){const [name,val]=pick(r,entries);return qobj('D2',`How many children chose ${name.toLowerCase()}?`,val,[Math.max(0,val-1),val+1,val+2],graphVisual(data),'Read the number of blocks for that category.','exact');}
+ if(mode==='most'){const [name,val]=entries.reduce((a,b)=>a[1]>b[1]?a:b);return qobj('D2','Which category has the most?',name,entries.map(x=>x[0]).filter(x=>x!==name),graphVisual(data),'The tallest row has the most.','most');}
+ if(mode==='least'){const [name,val]=entries.reduce((a,b)=>a[1]<b[1]?a:b);return qobj('D2','Which category has the least?',name,entries.map(x=>x[0]).filter(x=>x!==name),graphVisual(data),'The shortest row has the least.','least');}
+ if(mode==='difference'){const [a,b]=shuffle(r,entries).slice(0,2),d=Math.abs(a[1]-b[1]);return qobj('D2',`How many more is the larger of ${a[0].toLowerCase()} and ${b[0].toLowerCase()}?`,d,[Math.max(0,d-1),d+1,d+2],graphVisual(data),'Compare the two values and find the difference.','difference');}
+ const total=entries.reduce((s,x)=>s+x[1],0);return qobj('D2','How many children are shown altogether?',total,[total-1,total+1,total+2],graphVisual(data),'Add the values from all three categories.','total');
 }
-function genD2(r,easy){
- const data=makeData(r),entries=Object.entries(data),mode=easy?pick(r,['count','most']):pick(r,['count','most','least','difference','total']);let text,ans,dis;
- if(mode==='most'){const [k,v]=entries.reduce((a,b)=>b[1]>a[1]?b:a);ans=k;text='Which category has the most?';dis=entries.map(x=>x[0]).filter(x=>x!==ans);}
- else if(mode==='least'){const [k,v]=entries.reduce((a,b)=>b[1]<a[1]?b:a);ans=k;text='Which category has the fewest?';dis=entries.map(x=>x[0]).filter(x=>x!==ans);}
- else if(mode==='difference'){const [a,b]=shuffle(r,entries).slice(0,2),d=Math.abs(a[1]-b[1]);ans=d;text=`How many more or fewer are there between ${a[0].toLowerCase()} and ${b[0].toLowerCase()}?`;dis=[Math.max(0,d-1),d+1,d+2];}
- else if(mode==='total'){const [a,b]=shuffle(r,entries).slice(0,2),t=a[1]+b[1];ans=t;text=`How many are there altogether for ${a[0].toLowerCase()} and ${b[0].toLowerCase()}?`;dis=[t-1,t+1,t+2];}
- else {const [k,v]=pick(r,entries);ans=v;text=`How many are shown for ${k.toLowerCase()}?`;dis=[1,2,3,4,5].filter(x=>x!==ans);}
- return qobj('D2',text,ans,dis,graphVisual(data),'Read the graph carefully and use the values shown.');
-}
-function genD3(r,easy){
- const data=makeData(r),entries=Object.entries(data),mode=easy?pick(r,['compare','exact']):pick(r,['compare','exact','difference','mostClaim']);
- if(mode==='compare'){
-  const [a,b]=shuffle(r,entries).slice(0,2),claim=a[1]>b[1],text=`A child says there are more ${a[0].toLowerCase()} than ${b[0].toLowerCase()}. Is the claim supported by the graph?`;return qobj('D3',text,claim?'Yes':'No',['Yes','No'].filter(x=>x!==(claim?'Yes':'No')),graphVisual(data),'Compare the actual values in the graph before deciding.');
- }
- if(mode==='exact'){
-  const [a]=shuffle(r,entries),claimed=r()<.5?a[1]:Math.max(0,a[1]+pick(r,[-2,-1,1,2])),ok=claimed===a[1];return qobj('D3',`A child says the graph shows ${claimed} for ${a[0].toLowerCase()}. Is that supported by the data?`,ok?'Yes':'No',['Yes','No'].filter(x=>x!==(ok?'Yes':'No')),graphVisual(data),'Use the exact number shown in the graph as evidence.');
- }
- if(mode==='difference'){
-  const [a,b]=shuffle(r,entries).slice(0,2),actual=Math.abs(a[1]-b[1]),claimed=r()<.5?actual:actual+1,ok=claimed===actual;return qobj('D3',`A child says ${a[0].toLowerCase()} and ${b[0].toLowerCase()} differ by ${claimed}. Is that supported by the graph?`,ok?'Yes':'No',['Yes','No'].filter(x=>x!==(ok?'Yes':'No')),graphVisual(data),'Find both values and compare them.');
- }
- const [top]=entries.sort((a,b)=>b[1]-a[1]),claimed=pick(r,entries)[0],ok=claimed===top[0];return qobj('D3',`A child says ${claimed.toLowerCase()} is the largest category. Is that supported by the graph?`,ok?'Yes':'No',['Yes','No'].filter(x=>x!==(ok?'Yes':'No')),graphVisual(data),'The largest category is the one with the greatest value.');
+function genD3(r,level,easy=false){
+ level=clampLevel(level);const data=makeData(r),entries=Object.entries(data),mode=easy||level===0?'greaterClaim':level===1?pick(r,['greaterClaim','exactClaim']):pick(r,['greaterClaim','exactClaim','differenceClaim']);
+ if(mode==='greaterClaim'){const [a,b]=shuffle(r,entries).slice(0,2),claim=a[1]>b[1];return qobj('D3',`A child says more chose ${a[0].toLowerCase()} than ${b[0].toLowerCase()}. Is that supported by the graph?`,claim?'Yes':'No',['Yes','No'].filter(x=>x!==(claim?'Yes':'No')),graphVisual(data),'Compare the two values in the graph.','greater-claim');}
+ if(mode==='exactClaim'){const a=pick(r,entries),claimed=r()<.5?a[1]:a[1]+1,ok=claimed===a[1];return qobj('D3',`A child says ${claimed} chose ${a[0].toLowerCase()}. Is that supported by the graph?`,ok?'Yes':'No',['Yes','No'].filter(x=>x!==(ok?'Yes':'No')),graphVisual(data),'Use the exact value shown in the graph.','exact-claim');}
+ const [a,b]=shuffle(r,entries).slice(0,2),actual=Math.abs(a[1]-b[1]),claimed=r()<.5?actual:actual+1,ok=claimed===actual;return qobj('D3',`A child says ${a[0].toLowerCase()} and ${b[0].toLowerCase()} differ by ${claimed}. Is that supported by the graph?`,ok?'Yes':'No',['Yes','No'].filter(x=>x!==(ok?'Yes':'No')),graphVisual(data),'Find both values and compare them.','difference-claim');
 }
 
 const GENS={N1:genN1,N4:genN4,N5:genN5,N10:genN10,N11:genN11,N16:genN16,M1:genM1,M3:genM3,M7:genM7,M9:genM9,A1:genA1,A2:genA2,A5:genA5,S1:genS1,S4:genS4,S7:genS7,D2:genD2,D3:genD3};
@@ -383,139 +332,81 @@ const params=new URLSearchParams(location.search);
 const sid=String(params.get('sid')||'').slice(0,100);
 const focus=String(params.get('focus')||'').split(',').filter(x=>SKILLS[x]).slice(0,2);
 const review=String(params.get('review')||'').split(',').filter(x=>SKILLS[x]&&!focus.includes(x)).slice(0,2);
-const storeKey='imp_practice_v2_'+sid;
-let saved={days:{},intent:false,easyKeys:[]};try{saved=JSON.parse(localStorage.getItem(storeKey)||'{"days":{},"intent":false,"easyKeys":[]}')||saved}catch(e){}
-if(!saved.days)saved.days={};if(!Array.isArray(saved.easyKeys))saved.easyKeys=[];
+function parseLevels(raw){const out={};String(raw||'').split(',').forEach(part=>{const [id,val]=part.split(':');if(SKILLS[id])out[id]=clampLevel(val)});return out}
+const linkLevels=parseLevels(params.get('levels'));
+const storeKey='imp_practice_v3_'+sid;
+let saved={days:{},intent:false,recentKeys:[],skillLevels:{},startLevels:{},skillStats:{}};
+try{saved=Object.assign(saved,JSON.parse(localStorage.getItem(storeKey)||'{}')||{})}catch(e){}
+if(!saved.days)saved.days={};if(!Array.isArray(saved.recentKeys))saved.recentKeys=[];if(!saved.skillLevels)saved.skillLevels={};if(!saved.startLevels)saved.startLevels={};if(!saved.skillStats)saved.skillStats={};
+for(const id of focus){if(saved.skillLevels[id]===undefined)saved.skillLevels[id]=linkLevels[id]??0;if(saved.startLevels[id]===undefined)saved.startLevels[id]=saved.skillLevels[id]}
+for(const id of review){if(saved.skillLevels[id]===undefined)saved.skillLevels[id]=1;if(saved.startLevels[id]===undefined)saved.startLevels[id]=saved.skillLevels[id]}
 
-let currentDay=1,questions=[],qIndex=0,firstTryCorrect=0,recovered=0,currentQ=null,inEasy=false,answered=false;
-
+let currentDay=1,qIndex=0,firstTryCorrect=0,recovered=0,currentQ=null,inEasy=false,answered=false,daySkillOrder=[],dayRng=null,dayFamilies=[],currentQuestions=[];
 function save(){localStorage.setItem(storeKey,JSON.stringify(saved))}
 function show(id){['welcome','practice','dayResult','weekResult','badLink'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));window.scrollTo({top:0,behavior:'smooth'})}
 function track(event,props={}){if(!sid)return;fetch('/api/event',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({event,session_id:sid,page:'/practice/',...props})}).catch(()=>{})}
 function nextIncomplete(){for(let d=1;d<=7;d++)if(!saved.days[d])return d;return 8}
-function daySkills(day){
- const [a,b]=focus.length===2?focus:[focus[0],focus[0]];
- if(day===1||day===3)return Array(8).fill(a);
- if(day===2||day===4)return Array(8).fill(b);
- if(day===5)return [a,a,a,a,b,b,b,b];
- if(day===6){
-   const rv=review.length?review:[a,b];
-   return [a,a,a,b,b,b,rv[0]||a,rv[1]||b];
- }
- return [a,a,a,a,b,b,b,b];
-}
+function daySkills(day){const [a,b]=focus.length===2?focus:[focus[0],focus[0]];if(day===1||day===3)return Array(8).fill(a);if(day===2||day===4)return Array(8).fill(b);if(day===5)return [a,a,a,a,b,b,b,b];if(day===6){const rv=review.length?review:[a,b];return [a,a,a,b,b,b,rv[0]||a,rv[1]||b]}return [a,a,a,a,b,b,b,b]}
 function questionKey(q){return `${q.skill}|${q.text}|${q.answer}`}
-function buildWeekPlan(){
- const r=rngFor(`${sid}|week-v2|${focus.join('-')}|${review.join('-')}`),seen=new Set(),plan={};
- for(let day=1;day<=7;day++){
-   const skills=shuffle(r,daySkills(day)),out=[],dayConcepts=new Set(),dayFamilyCounts=new Map();
-   for(const skill of skills){
-     let q=null,key='',conceptKey='';
-     for(let attempt=0;attempt<120;attempt++){
-       const candidate=GENS[skill](r,false),candidateKey=questionKey(candidate),candidateConcept=candidate.concept?`${skill}|${candidate.concept}`:'',candidateFamily=candidate.family?`${skill}|${candidate.family}`:'';
-       const familyOkay=!candidateFamily||(dayFamilyCounts.get(candidateFamily)||0)<2;
-       if(!seen.has(candidateKey)&&(!candidateConcept||!dayConcepts.has(candidateConcept))&&familyOkay){q=candidate;key=candidateKey;conceptKey=candidateConcept;q._familyKey=candidateFamily;break}
-     }
-     if(!q){
-       console.error('Could not generate a fresh core question for',skill,'day',day);
-       q=GENS[skill](r,false);key=questionKey(q);
-     }
-     seen.add(key);if(conceptKey)dayConcepts.add(conceptKey);if(q._familyKey){dayFamilyCounts.set(q._familyKey,(dayFamilyCounts.get(q._familyKey)||0)+1);delete q._familyKey}q.choices=shuffle(r,q.choices);out.push(q);
-   }
-   plan[day]=out;
+function currentLevel(skill){return clampLevel(saved.skillLevels[skill]??0)}
+function rememberQuestion(q){saved.recentKeys.push(questionKey(q));saved.recentKeys=saved.recentKeys.slice(-60);save()}
+function generateQuestion(skill,level,easy=false){
+ const recent=new Set(saved.recentKeys.slice(-12)),lastFamily=dayFamilies.length?dayFamilies[dayFamilies.length-1]:'';let fallback=null;
+ for(let attempt=0;attempt<60;attempt++){
+   const q=GENS[skill](dayRng,level,easy);q.level=clampLevel(level);q.choices=shuffle(dayRng,q.choices);fallback=q;const key=questionKey(q);
+   if(!recent.has(key)&&(!lastFamily||q.family!==lastFamily||attempt>20)){rememberQuestion(q);dayFamilies.push(q.family||'');return q}
  }
- return plan;
+ // Crucial rule: repeat at the same appropriate level rather than escalating merely for novelty.
+ rememberQuestion(fallback);dayFamilies.push(fallback.family||'');return fallback;
 }
-const WEEK_PLAN=buildWeekPlan();
-const WEEK_CORE_KEYS=new Set(Object.values(WEEK_PLAN).flat().map(questionKey));
-function buildQuestions(day){return WEEK_PLAN[day].map(q=>({...q,choices:[...q.choices]}))}
-function renderDots(day){
- const el=document.getElementById('dayDots');el.innerHTML='';
- for(let d=1;d<=7;d++){const x=document.createElement('div');x.className='daydot'+(saved.days[d]?' done':'')+(d===day?' current':'');x.innerHTML=`<strong>${saved.days[d]?'✓':d}</strong>Day`;el.appendChild(x)}
+function updateLevel(skill,correct){
+ const st=saved.skillStats[skill]||{streak:0,misses:0};let before=currentLevel(skill),after=before;
+ if(correct){st.streak++;st.misses=0;if(st.streak>=3&&before<2){after=before+1;st.streak=0}}
+ else {st.misses++;st.streak=0;if(st.misses>=2&&before>0){after=before-1;st.misses=0}}
+ saved.skillStats[skill]=st;saved.skillLevels[skill]=after;save();return {before,after};
 }
+function renderDots(day){const el=document.getElementById('dayDots');el.innerHTML='';for(let d=1;d<=7;d++){const x=document.createElement('div');x.className='daydot'+(saved.days[d]?' done':'')+(d===day?' current':'');x.innerHTML=`<strong>${saved.days[d]?'✓':d}</strong>Day`;el.appendChild(x)}}
 function init(){
  if(!sid||focus.length<2){show('badLink');return}
  document.getElementById('welcomeFocus').innerHTML=focus.map(id=>`<span class="focuschip">${SKILLS[id].title}</span>`).join('');
- const n=nextIncomplete();const btn=document.getElementById('startNextBtn');
- if(n<=7){btn.textContent=saved.days[1]?`Continue with Day ${n}`:'Start Day 1';btn.onclick=()=>startDay(n)}
- else {btn.textContent='See my week';btn.onclick=showWeek}
- document.querySelectorAll('.subscribeBtn').forEach(b=>b.onclick=subscriptionIntent);
- track('practice_link_opened',{focus});
- show(n>7?'weekResult':'welcome');if(n>7)showWeek();
+ const n=nextIncomplete(),btn=document.getElementById('startNextBtn');if(n<=7){btn.textContent=saved.days[1]?`Continue with Day ${n}`:'Start Day 1';btn.onclick=()=>startDay(n)}else{btn.textContent='See my week';btn.onclick=showWeek}
+ document.querySelectorAll('.subscribeBtn').forEach(b=>b.onclick=subscriptionIntent);track('practice_link_opened',{focus,levels:Object.fromEntries(focus.map(id=>[id,currentLevel(id)]))});show(n>7?'weekResult':'welcome');if(n>7)showWeek();
 }
 function startDay(day){
- currentDay=day;questions=buildQuestions(day);qIndex=0;firstTryCorrect=0;recovered=0;inEasy=false;answered=false;
- document.getElementById('dayLabel').textContent=`Day ${day} of 7`;renderDots(day);track('practice_day_started',{day,focus});show('practice');renderQ();
+ currentDay=day;qIndex=0;firstTryCorrect=0;recovered=0;inEasy=false;answered=false;currentQuestions=[];dayFamilies=[];dayRng=rngFor(`${sid}|day-${day}|first-class-v3|${focus.join('-')}|${Date.now().toString().slice(0,7)}`);daySkillOrder=shuffle(dayRng,daySkills(day));
+ document.getElementById('dayLabel').textContent=`Day ${day} of 7`;renderDots(day);track('practice_day_started',{day,focus,levels:Object.fromEntries(focus.map(id=>[id,currentLevel(id)]))});show('practice');renderQ();
 }
 function renderQ(){
- currentQ=questions[qIndex];inEasy=false;answered=false;
- document.getElementById('qMeta').textContent=`Question ${qIndex+1} of ${questions.length}`;
- document.getElementById('skillChip').textContent=SKILLS[currentQ.skill].title;
- document.getElementById('qProgress').style.width=`${(qIndex/questions.length)*100}%`;
- document.getElementById('qText').textContent=currentQ.text;
- const vis=document.getElementById('qVisual');if(currentQ.visual){vis.innerHTML=currentQ.visual;vis.classList.remove('hidden')}else{vis.innerHTML='';vis.classList.add('hidden')}
- renderAnswers(currentQ);
- document.getElementById('feedback').className='feedback hidden';document.getElementById('nextAction').className='actions hidden';document.getElementById('nextAction').innerHTML='';
+ const skill=daySkillOrder[qIndex];if(!currentQuestions[qIndex])currentQuestions[qIndex]=generateQuestion(skill,currentLevel(skill),false);currentQ=currentQuestions[qIndex];inEasy=false;answered=false;
+ document.getElementById('qMeta').textContent=`Question ${qIndex+1} of ${DAY_TOTAL}`;document.getElementById('skillChip').textContent=SKILLS[currentQ.skill].title;document.getElementById('qProgress').style.width=`${(qIndex/DAY_TOTAL)*100}%`;document.getElementById('qText').textContent=currentQ.text;
+ const vis=document.getElementById('qVisual');if(currentQ.visual){vis.innerHTML=currentQ.visual;vis.classList.remove('hidden')}else{vis.innerHTML='';vis.classList.add('hidden')}renderAnswers(currentQ);document.getElementById('feedback').className='feedback hidden';document.getElementById('nextAction').className='actions hidden';document.getElementById('nextAction').innerHTML='';
 }
-function renderAnswers(q){
- const a=document.getElementById('answers');a.innerHTML='';
- q.choices.forEach(choice=>{const b=document.createElement('button');b.className='answer';b.textContent=choice;b.onclick=()=>answer(choice,b);a.appendChild(b)})
-}
+function renderAnswers(q){const a=document.getElementById('answers');a.innerHTML='';q.choices.forEach(choice=>{const b=document.createElement('button');b.className='answer';b.textContent=choice;b.onclick=()=>answer(choice,b);a.appendChild(b)})}
 function answer(choice,button){
- if(answered)return;answered=true;document.querySelectorAll('.answer').forEach(b=>b.disabled=true);
- const correct=String(choice)===String(currentQ.answer);button.classList.add(correct?'correct':'wrong');
- const f=document.getElementById('feedback');f.classList.remove('hidden');
- if(correct){
-   if(inEasy)recovered++;else firstTryCorrect++;
-   f.className='feedback good';f.innerHTML=`<strong>That’s right.</strong> ${currentQ.explain||''}`;
-   showNextButton();
- }else{
-   f.className='feedback try';f.innerHTML=`<strong>Not quite.</strong> ${inEasy?currentQ.explain:'Let’s try the same idea once more in a simpler way.'}`;
-   if(inEasy){showNextButton()}else{
-     const acts=document.getElementById('nextAction');acts.className='actions';acts.innerHTML='<button class="btn btn-secondary" id="easyBtn">Try a simpler one</button>';document.getElementById('easyBtn').onclick=showEasy;
-   }
- }
- track('practice_question_answered',{day:currentDay,focus:[currentQ.skill],correct,level:inEasy?'easy':'core'});
+ if(answered)return;answered=true;document.querySelectorAll('.answer').forEach(b=>b.disabled=true);const correct=String(choice)===String(currentQ.answer);button.classList.add(correct?'correct':'wrong');const f=document.getElementById('feedback');f.classList.remove('hidden');let movement=null;
+ if(!inEasy)movement=updateLevel(currentQ.skill,correct);
+ if(correct){if(inEasy)recovered++;else firstTryCorrect++;f.className='feedback good';f.innerHTML=`<strong>That’s right.</strong> ${currentQ.explain||''}${movement&&movement.after>movement.before?' We’ll gently build from that evidence.':''}`;showNextButton()}
+ else {f.className='feedback try';f.innerHTML=`<strong>Not quite.</strong> ${inEasy?currentQ.explain:'Let’s try the same idea once more in a simpler way.'}`;if(inEasy)showNextButton();else{const acts=document.getElementById('nextAction');acts.className='actions';acts.innerHTML='<button class="btn btn-secondary" id="easyBtn">Try a simpler one</button>';document.getElementById('easyBtn').onclick=showEasy}}
+ track('practice_question_answered',{day:currentDay,focus:[currentQ.skill],correct,level:currentQ.level,easier:inEasy});
 }
 function showEasy(){
- const originalSkill=currentQ.skill,r=rngFor(`${sid}|day${currentDay}|q${qIndex}|easy-v2|${questionKey(currentQ)}`),used=new Set(saved.easyKeys||[]);
- let next=null,key='';
- for(let attempt=0;attempt<120;attempt++){
-   const candidate=GENS[originalSkill](r,true);candidate.text=`A simpler step: ${candidate.text}`;const candidateKey=questionKey(candidate);
-   if(!WEEK_CORE_KEYS.has(candidateKey)&&!used.has(candidateKey)){next=candidate;key=candidateKey;break}
- }
- if(!next){next=GENS[originalSkill](r,true);next.text=`A simpler step: ${next.text}`;key=questionKey(next)}
- currentQ=next;currentQ.choices=shuffle(r,currentQ.choices);saved.easyKeys.push(key);save();inEasy=true;answered=false;
- document.getElementById('qMeta').textContent=`Question ${qIndex+1} of ${questions.length} · simpler follow-up`;document.getElementById('qText').textContent=currentQ.text;const vis=document.getElementById('qVisual');if(currentQ.visual){vis.innerHTML=currentQ.visual;vis.classList.remove('hidden')}else{vis.innerHTML='';vis.classList.add('hidden')}renderAnswers(currentQ);
- document.getElementById('feedback').className='feedback hidden';document.getElementById('nextAction').className='actions hidden';document.getElementById('nextAction').innerHTML='';
+ const skill=currentQ.skill,easyLevel=Math.max(0,currentQ.level-1);currentQ=generateQuestion(skill,easyLevel,true);currentQ.text=`A simpler step: ${currentQ.text}`;currentQ.choices=shuffle(dayRng,currentQ.choices);inEasy=true;answered=false;
+ document.getElementById('qMeta').textContent=`Question ${qIndex+1} of ${DAY_TOTAL} · simpler follow-up`;document.getElementById('qText').textContent=currentQ.text;const vis=document.getElementById('qVisual');if(currentQ.visual){vis.innerHTML=currentQ.visual;vis.classList.remove('hidden')}else{vis.innerHTML='';vis.classList.add('hidden')}renderAnswers(currentQ);document.getElementById('feedback').className='feedback hidden';document.getElementById('nextAction').className='actions hidden';document.getElementById('nextAction').innerHTML='';
 }
-function showNextButton(){
- const acts=document.getElementById('nextAction');acts.className='actions';acts.innerHTML=`<button class="btn btn-primary" id="continueQ">${qIndex===questions.length-1?'Finish Day '+currentDay:'Next question'}</button>`;document.getElementById('continueQ').onclick=nextQ;
-}
-function nextQ(){qIndex++;if(qIndex>=questions.length){finishDay()}else renderQ()}
+function showNextButton(){const acts=document.getElementById('nextAction');acts.className='actions';acts.innerHTML=`<button class="btn btn-primary" id="continueQ">${qIndex===DAY_TOTAL-1?'Finish Day '+currentDay:'Next question'}</button>`;document.getElementById('continueQ').onclick=nextQ}
+function nextQ(){qIndex++;if(qIndex>=DAY_TOTAL)finishDay();else renderQ()}
+function focusLevelSentence(){return focus.map(id=>`<strong>${SKILLS[id].title}:</strong> ${LEVEL_SUMMARY[currentLevel(id)]}`).join('<br>')}
 function finishDay(){
- saved.days[currentDay]={correct:firstTryCorrect,total:questions.length,recovered,at:new Date().toISOString()};save();
- track('practice_day_completed',{day:currentDay,score:firstTryCorrect,total:questions.length,focus});
- document.getElementById('resultEyebrow').textContent=`Day ${currentDay} complete`;
- document.getElementById('resultTitle').textContent=currentDay===7?'Your free practice week is complete.':'Nice work today.';
- document.getElementById('resultCopy').textContent=firstTryCorrect>=6?'Most of today’s questions looked comfortable. We’ll keep building from that evidence.':firstTryCorrect>=4?'There was a useful mix of secure answers and places to keep practising.':'Today gave us useful information about what deserves more practice.';
- document.getElementById('scoreStat').textContent=`${firstTryCorrect}/${questions.length}`;
- document.getElementById('recoveryStat').textContent=String(recovered);
- document.getElementById('nextNotice').innerHTML=currentDay<7?`<strong>What comes next:</strong> Day ${currentDay+1} will continue the plan using the skills from the original snapshot and what this week is designed to revisit.`:'<strong>You completed all seven sessions.</strong> The next step would be continued personalised practice rather than leaving you to decide what to find next.';
- const b=document.getElementById('nextDayBtn');if(currentDay<7){b.textContent=`Continue to Day ${currentDay+1}`;b.onclick=()=>startDay(currentDay+1)}else{b.textContent='See my 7-day summary';b.onclick=showWeek}
- show('dayResult');
+ saved.days[currentDay]={correct:firstTryCorrect,total:DAY_TOTAL,recovered,levels:Object.fromEntries(focus.map(id=>[id,currentLevel(id)])),at:new Date().toISOString()};save();track('practice_day_completed',{day:currentDay,score:firstTryCorrect,total:DAY_TOTAL,focus,levels:saved.days[currentDay].levels});
+ document.getElementById('resultEyebrow').textContent=`Day ${currentDay} complete`;document.getElementById('resultTitle').textContent=currentDay===7?'Your free practice week is complete.':'Nice work today.';document.getElementById('resultCopy').textContent=firstTryCorrect>=6?'Most of today’s questions looked comfortable. We’ll keep building from that evidence.':firstTryCorrect>=4?'There was a useful mix of comfortable answers and places to keep practising.':'Today gave us useful information about where to keep the practice gentle.';document.getElementById('scoreStat').textContent=`${firstTryCorrect}/${DAY_TOTAL}`;document.getElementById('recoveryStat').textContent=String(recovered);
+ document.getElementById('nextNotice').innerHTML=(currentDay<7?`<strong>What comes next:</strong> Day ${currentDay+1} will use today’s answers to keep the practice at an appropriate First Class level.<br><br>`:'<strong>You completed all seven sessions.</strong><br><br>')+focusLevelSentence();
+ const b=document.getElementById('nextDayBtn');if(currentDay<7){b.textContent=`Continue to Day ${currentDay+1}`;b.onclick=()=>startDay(currentDay+1)}else{b.textContent='See my 7-day summary';b.onclick=showWeek}show('dayResult');
 }
 function showWeek(){
- const done=Object.values(saved.days);const total=done.reduce((a,d)=>a+(d.total||0),0),correct=done.reduce((a,d)=>a+(d.correct||0),0);
- document.getElementById('weekSummary').innerHTML=`Your child completed <strong>${done.length} practice sessions</strong> and answered <strong>${correct} of ${total}</strong> core questions correctly on the first try. This free week is a sample of the ongoing loop: identify priorities, practise them, revisit them, and use new answers to decide what should come next.`;
- track('practice_week_viewed',{score:correct,total,focus});show('weekResult');
+ const done=Object.values(saved.days),total=done.reduce((a,d)=>a+(d.total||0),0),correct=done.reduce((a,d)=>a+(d.correct||0),0);const lines=focus.map(id=>{const start=clampLevel(saved.startLevels[id]??0),now=currentLevel(id);if(now>start)return `<strong>${SKILLS[id].title}:</strong> the practice was able to move into more demanding First Class examples.`;if(now<start)return `<strong>${SKILLS[id].title}:</strong> we brought the practice back to a gentler First Class level.`;return `<strong>${SKILLS[id].title}:</strong> we kept the practice at ${LEVEL_SUMMARY[now]} rather than pushing harder just for variety.`}).join('<br>');
+ document.getElementById('weekSummary').innerHTML=`Your child completed <strong>${done.length} practice sessions</strong> and answered <strong>${correct} of ${total}</strong> core questions correctly on the first try.<br><br>${lines}<br><br>This is the ongoing loop: practise, gather new evidence, and choose what should come next.`;track('practice_week_viewed',{score:correct,total,focus,levels:Object.fromEntries(focus.map(id=>[id,currentLevel(id)]))});show('weekResult');
 }
-async function subscriptionIntent(){
- if(saved.intent){alert('Thanks — we’ve already saved your interest in continuing at €9.99/month.');return}
- try{await fetch('/api/intent',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({session_id:sid,price_eur:9.99,page:`/practice/day-${currentDay||'summary'}/`})})}catch(e){}
- saved.intent=true;save();track('practice_price_intent',{day:currentDay||0,price_eur:9.99,focus});
- alert('Thanks — we’ve saved your interest in continuing at €9.99/month. No payment has been taken.');
-}
+async function subscriptionIntent(){if(saved.intent){alert('Thanks — we’ve already saved your interest in continuing at €9.99/month.');return}try{await fetch('/api/intent',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({session_id:sid,price_eur:9.99,page:`/practice/day-${currentDay||'summary'}/`})})}catch(e){}saved.intent=true;save();track('practice_price_intent',{day:currentDay||0,price_eur:9.99,focus});alert('Thanks — we’ve saved your interest in continuing at €9.99/month. No payment has been taken.')}
 init();
 </script>
 </body>

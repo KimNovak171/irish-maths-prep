@@ -10,11 +10,13 @@ function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 
-function buildPracticeUrl(requestUrl, sessionId, focusIds, reviewIds) {
+function buildPracticeUrl(requestUrl, sessionId, focusIds, reviewIds, levels) {
   const url = new URL('/practice/', requestUrl);
   url.searchParams.set('sid', sessionId);
   url.searchParams.set('focus', focusIds.join(','));
   if (reviewIds.length) url.searchParams.set('review', reviewIds.join(','));
+  const levelParam = focusIds.map(id => `${id}:${levels[id] ?? 0}`).join(',');
+  if (levelParam) url.searchParams.set('levels', levelParam);
   return url.toString();
 }
 
@@ -45,7 +47,7 @@ function buildHtml(focusIds, practiceUrl) {
       </div>
 
       <p style="font-size:17px;line-height:1.65;margin:0 0 20px;color:#35463d;">
-        Your free week includes seven short on-screen practice sessions. Your child will answer real interactive maths questions, similar to the snapshot. If a question is difficult, we’ll offer a simpler follow-up before moving on.
+        Your free week includes seven short on-screen practice sessions calibrated for First Class. Your child will answer real interactive maths questions, similar to the snapshot. If a question is difficult, we’ll offer a simpler follow-up before moving on. A little repetition is intentional when it helps build confidence or checks that learning is sticking.
       </p>
 
       <div style="text-align:center;margin:28px 0 26px;">
@@ -59,7 +61,7 @@ function buildHtml(focusIds, practiceUrl) {
       </p>
 
       <p style="font-size:14px;line-height:1.6;color:#68766e;margin:22px 0 0;">
-        This is a short practice tool, not a school assessment or grade. First Class and Second Class sit within Stage 2 of Ireland’s Primary Mathematics Curriculum, so children may be at different points within the stage.
+        This is a short practice tool, not a school assessment or grade. First Class and Second Class share Stage 2 learning outcomes in Ireland’s Primary Mathematics Curriculum; this practice deliberately uses a conservative First Class range and adapts within it.
       </p>
 
       <p style="font-size:14px;line-height:1.6;color:#68766e;margin:14px 0 0;">
@@ -83,14 +85,14 @@ Based on today’s snapshot, the clearest areas to give some extra practice are 
 
 YOU DON’T HAVE TO FIGURE OUT WHAT TO PRACTISE NEXT. WE CHOOSE IT FOR YOU.
 
-Your free week includes seven short on-screen practice sessions. Your child will answer real interactive maths questions, similar to the snapshot. If a question is difficult, we’ll offer a simpler follow-up before moving on.
+Your free week includes seven short on-screen practice sessions calibrated for First Class. Your child will answer real interactive maths questions, similar to the snapshot. If a question is difficult, we’ll offer a simpler follow-up before moving on. A little repetition is intentional when it helps build confidence or checks that learning is sticking.
 
 Start Day 1:
 ${practiceUrl}
 
 Aim for about 8–10 minutes per session. There is no account or password required for this free practice.
 
-This is a short practice tool, not a school assessment or grade. First Class and Second Class sit within Stage 2 of Ireland’s Primary Mathematics Curriculum, so children may be at different points within the stage.
+This is a short practice tool, not a school assessment or grade. First Class and Second Class share Stage 2 learning outcomes in Ireland’s Primary Mathematics Curriculum; this practice deliberately uses a conservative First Class range and adapts within it.
 
 Questions? Reply to this email and it will come to us at hello@irishmathsprep.com.`;
 }
@@ -121,6 +123,13 @@ export async function onRequestPost(context) {
       .filter(id => Object.prototype.hasOwnProperty.call(SKILLS, id) && !focusIds.includes(id))
       .slice(0, 2);
 
+    const requestedLevels = body.levels && typeof body.levels === 'object' ? body.levels : {};
+    const levels = Object.fromEntries(focusIds.map(id => {
+      const raw = Number(requestedLevels[id]);
+      const level = Number.isFinite(raw) ? Math.max(0, Math.min(2, Math.round(raw))) : 0;
+      return [id, level];
+    }));
+
     const focusJson = JSON.stringify(focusIds);
     const source = String(body.source || 'snapshot').slice(0, 80);
 
@@ -140,7 +149,7 @@ export async function onRequestPost(context) {
       return Response.json({ ok: false, error: 'email_not_configured' }, { status: 500 });
     }
 
-    const practiceUrl = buildPracticeUrl(context.request.url, sessionId, focusIds, reviewIds);
+    const practiceUrl = buildPracticeUrl(context.request.url, sessionId, focusIds, reviewIds, levels);
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -178,6 +187,7 @@ export async function onRequestPost(context) {
       `).bind(sessionId, JSON.stringify({
         focus: focusIds,
         review: reviewIds,
+        levels,
         resend_id: resendData.id || null
       })).run();
     } catch (eventError) {
