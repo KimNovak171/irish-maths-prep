@@ -166,13 +166,18 @@ function tenLabel(n){return `${n} ${n===1?'ten':'tens'}`}
 function oneLabel(n){return `${n} ${n===1?'one':'ones'}`}
 
 function tenFrame(full,extra){let h='<div class="tenframes">';for(let f=0;f<full;f++){h+='<div class="tenframe">'+Array.from({length:10},()=>'<span class="dot"></span>').join('')+'</div>'}if(extra){h+='<div class="tenframe">'+Array.from({length:10},(_,i)=>`<span class="dot ${i<extra?'':'empty'}"></span>`).join('')+'</div>'}return h+'</div>'}
+function countDotsVisual(total){return '<div style="display:grid;grid-template-columns:repeat(5,34px);gap:14px;justify-content:center;max-width:230px;margin:auto">'+Array.from({length:total},()=>'<span class="countdot" style="width:30px;height:30px"></span>').join('')+'</div>'}
 function groupVisual(groups,size){return '<div class="countgroups">'+Array.from({length:groups},()=>`<div class="countgroup">${Array.from({length:size},()=>'<span class="countdot"></span>').join('')}</div>`).join('')+'</div>'}
+function tenPlusOnesVisual(o){return '<div style="display:flex;gap:14px;justify-content:center;align-items:flex-end;flex-wrap:wrap"><span style="width:54px;height:100px;border-radius:8px;background:#73ae90;color:white;display:grid;place-items:center;font-size:28px;font-weight:900">10</span>'+Array.from({length:o},()=>'<span style="width:34px;height:34px;border-radius:7px;background:#d6a84b;display:inline-grid;place-items:center;font-weight:900">1</span>').join('')+'</div>'}
 function base10(t,o){return '<div class="base10">'+Array.from({length:t},()=>'<span class="tenbar"></span>').join('')+Array.from({length:o},()=>'<span class="one"></span>').join('')+'</div><div class="small" style="margin-top:8px;text-align:center">Each long block is 10. Each small block is 1.</div>'}
 function fractionVisual(n,d){return '<div class="fractionbar">'+Array.from({length:d},(_,i)=>`<span class="fracpart ${i<n?'shaded':''}"></span>`).join('')+'</div>'}
 function clockVisual(hour,minute){const hourDeg=((hour%12)+(minute/60))*30-90,minDeg=minute*6-90;return `<div class="clock"><span class="num n12">12</span><span class="num n3">3</span><span class="num n6">6</span><span class="num n9">9</span><span class="hand" style="width:43px;transform:rotate(${hourDeg}deg)"></span><span class="hand" style="width:59px;transform:rotate(${minDeg}deg)"></span></div>`}
 function rulerVisual(len){let ticks='';for(let i=0;i<=10;i++){const x=i*10;ticks+=`<span class="tick" style="left:${x}%;height:${i%5===0?25:14}px"></span><span class="lab" style="left:${x}%">${i}</span>`}return `<div class="ruler">${ticks}<span class="rulerobj" style="width:${len*10}%"></span></div>`}
 function rulerOffsetVisual(start,len){let ticks='';for(let i=0;i<=10;i++){const x=i*10;ticks+=`<span class="tick" style="left:${x}%;height:${i%5===0?25:14}px"></span><span class="lab" style="left:${x}%">${i}</span>`}return `<div class="ruler">${ticks}<span class="rulerobj" style="left:${start*10}%;width:${len*10}%"></span></div>`}
 function coinsVisual(vals){return '<div class="coins">'+vals.map(v=>`<span class="coin ${v<100?'cent':''}">${v===100?'€1':v+'c'}</span>`).join('')+'</div>'}
+function additionDotsVisual(a,b){const g=n=>`<div style="display:flex;gap:10px;flex-wrap:wrap;max-width:160px;justify-content:center">${Array.from({length:n},()=>'<span class="countdot" style="width:28px;height:28px"></span>').join('')}</div>`;return `<div style="display:flex;gap:26px;align-items:center;justify-content:center">${g(a)}<strong style="font-size:28px">+</strong>${g(b)}</div>`}
+function takeAwayVisual(total,take){return '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:40px">'+Array.from({length:total},(_,i)=>`<span style="position:relative;opacity:${i>=total-take?.45:1}">★${i>=total-take?'<span style="position:absolute;left:2px;right:2px;top:50%;height:4px;background:#a65336;transform:rotate(-35deg)"></span>':''}</span>`).join('')+'</div>'}
+function positionVisual(pos){const top=pos==='on'?15:pos==='under'?92:62,left=pos==='beside'?205:112;return `<div style="width:270px;height:160px;margin:auto;position:relative"><div style="position:absolute;left:45px;top:45px;width:165px;height:14px;background:#6b5748;border-radius:4px"></div><div style="position:absolute;left:55px;top:58px;width:10px;height:74px;background:#6b5748"></div><div style="position:absolute;right:60px;top:58px;width:10px;height:74px;background:#6b5748"></div><div style="position:absolute;left:${left}px;top:${top}px;width:36px;height:36px;border-radius:50%;background:#d6a84b;border:3px solid #7a6438"></div></div>`}
 function patternVisual(vals){return '<div class="patternrow">'+vals.map(v=>`<div><div class="tower">${Array.from({length:v},()=>'<span class="tile"></span>').join('')}</div><div class="towerlabel">${v}</div></div>`).join('')+'</div>'}
 function shapeSpan(name,rotate=0){const cls={Square:'square',Rectangle:'rect',Triangle:'triangle',Circle:'circle'}[name]||'square';return `<span class="shape ${cls}" style="transform:rotate(${rotate}deg)"></span>`}
 function shapesVisual(){return '<div class="shapes">'+shapeSpan('Circle')+shapeSpan('Triangle')+shapeSpan('Square')+shapeSpan('Rectangle')+'</div>'}
@@ -190,65 +195,49 @@ function lineCompareVisual(a,b){return `<div style="display:grid;gap:22px;max-wi
 
 function genN1(r,level,easy=false){
  level=clampLevel(level);
- let size,groups;
- if(easy){size=2;groups=ri(r,2,4)}
- else if(level===0){size=pick(r,[2,5]);groups=size===5?ri(r,2,4):ri(r,3,5)}
- else if(level===1){size=pick(r,[2,5,10]);groups=size===10?ri(r,2,4):ri(r,3,5)}
- else {size=pick(r,[5,10]);groups=size===10?ri(r,2,5):ri(r,3,6)}
- const total=size*groups,mode=easy||level===0?'count':pick(r,['count','groups']);
- if(mode==='count')return qobj('N1','How many dots are there?',total,numChoices(total),groupVisual(groups,size),'Count each small group, then put the groups together.','count-groups');
- return qobj('N1',`${groups} groups of ${size}. How many altogether?`,total,numChoices(total),groupVisual(groups,size),`Count in ${size}s to find the total.`,'named-groups');
+ if(easy){const total=ri(r,4,6);return qobj('N1','How many dots are there?',total,numChoices(total),countDotsVisual(total),'Count each dot once.','count-small')}
+ if(level===0){const total=ri(r,6,10);return qobj('N1','How many dots are there?',total,numChoices(total),countDotsVisual(total),'Count each dot once.','count-small')}
+ if(level===1){const size=pick(r,[2,5]),groups=size===5?ri(r,2,3):ri(r,3,5),total=size*groups;return qobj('N1','How many dots are there?',total,numChoices(total),groupVisual(groups,size),'Count the small groups.','count-groups')}
+ const size=pick(r,[2,5,10]),groups=size===10?ri(r,2,3):ri(r,3,5),total=size*groups;return qobj('N1',`${groups} groups of ${size}. How many altogether?`,total,numChoices(total),groupVisual(groups,size),`Count in ${size}s to find the total.`,'named-groups');
 }
 
 function genN4(r,level,easy=false){
  level=clampLevel(level);
- if(easy){const t=ri(r,1,2),o=ri(r,1,4),n=t*10+o;return qobj('N4',`Which number has ${tenLabel(t)} and ${oneLabel(o)}?`,n,[o*10+t,n+10,Math.max(10,n-1)],base10(t,o),'Put the tens and ones together.','easy-model')}
- const t=ri(r,1,level===0?4:level===1?7:9),o=ri(r,1,9),n=t*10+o;
- const mode=level===0?pick(r,['tensMeaning','onesMeaning']):level===1?pick(r,['tensMeaning','onesMeaning','tensValue']):pick(r,['tensValue','onesValue','which']);
- if(mode==='tensMeaning')return qobj('N4',`In ${n}, what does the ${t} mean?`,tenLabel(t),[oneLabel(t),tenLabel(o),oneLabel(n)],equationVisual(`<span style="color:#167a53">${t}</span>${o}`),'The left digit tells us how many tens.','tens-meaning');
- if(mode==='onesMeaning')return qobj('N4',`In ${n}, what does the ${o} mean?`,oneLabel(o),[tenLabel(o),oneLabel(t),oneLabel(n)],equationVisual(`${t}<span style="color:#167a53">${o}</span>`),'The right digit tells us how many ones.','ones-meaning');
- if(mode==='tensValue')return qobj('N4',`In ${n}, ${tenLabel(t)} is how many?`,t*10,[t,o*10,n],equationVisual(`<span style="color:#167a53">${t}</span>${o}`),`${tenLabel(t)} means ${t*10}.`,'tens-value');
- if(mode==='onesValue')return qobj('N4',`In ${n}, ${oneLabel(o)} is how many?`,o,[o*10,t,n],equationVisual(`${t}<span style="color:#167a53">${o}</span>`),`${oneLabel(o)} means ${o}.`,'ones-value');
- return qobj('N4',`Which number has ${tenLabel(t)} and ${oneLabel(o)}?`,n,[o*10+t,n+10,Math.max(10,n-1)],base10(t,o),'Put the tens and ones together.','which-number');
+ if(easy||level===0){const o=ri(r,1,easy?2:4),n=10+o;return qobj('N4',`10 and ${o} more make what number?`,n,[10,o*10,n+1],tenPlusOnesVisual(o),'Start at 10 and count on.','ten-plus')}
+ if(level===1){const o=ri(r,1,6),n=10+o;return qobj('N4',`1 ten and ${oneLabel(o)} make what number?`,n,[o*10+1,10,o+1],base10(1,o),'One ten is 10. Add the ones.','one-ten')}
+ const t=ri(r,2,5),o=ri(r,1,9),n=t*10+o;if(r()<.5)return qobj('N4',`Which number has ${tenLabel(t)} and ${oneLabel(o)}?`,n,[o*10+t,n+10,n-10],base10(t,o),'Put the tens and ones together.','which-number');return qobj('N4',`In ${n}, what does the ${t} mean?`,tenLabel(t),[oneLabel(t),tenLabel(o)],equationVisual(`<span style="color:#167a53">${t}</span>${o}`),'The left digit tells how many tens.','tens-meaning');
 }
 
 function genN5(r,level,easy=false){
- level=clampLevel(level);const t=ri(r,1,easy?2:level===0?4:level===1?7:9),o=ri(r,0,easy?4:9),n=t*10+o;
- const mode=easy||level===0?'make':level===1?pick(r,['make','howManyTens','howManyOnes']):pick(r,['make','howManyTens','howManyOnes','read']);
- if(mode==='make')return qobj('N5',`${tenLabel(t)} and ${oneLabel(o)} make what number?`,n,[t+o,o*10+t,n+10],base10(t,o),'Put the tens first, then the ones.','make');
- if(mode==='howManyTens')return qobj('N5',`How many tens are in ${n}?`,t,[o,t+1,Math.max(0,t-1)],equationVisual(n),'Look at the digit on the left.','how-many-tens');
- if(mode==='howManyOnes')return qobj('N5',`How many ones are in ${n}?`,o,[t,Math.min(9,o+1),Math.max(0,o-1)],equationVisual(n),'Look at the digit on the right.','how-many-ones');
- return qobj('N5',`${n} has how many tens and ones?`,`${tenLabel(t)} and ${oneLabel(o)}`,[`${tenLabel(o)} and ${oneLabel(t)}`,`${tenLabel(t+1)} and ${oneLabel(o)}`,`${tenLabel(t)} and ${oneLabel(Math.min(9,o+1))}`],base10(t,o),'Read the tens first, then the ones.','read');
+ level=clampLevel(level);
+ if(easy||level===0){const o=ri(r,1,easy?2:4),n=10+o;return qobj('N5','Which number does this picture show?',n,[o*10+1,o+1,10],tenPlusOnesVisual(o),'The long block is 10. Count the small ones too.','read-picture')}
+ if(level===1){const o=ri(r,1,7),n=10+o;return qobj('N5',`1 ten and ${oneLabel(o)} make what number?`,n,[o*10+1,o+1,10],base10(1,o),'One ten is 10. Add the ones.','make-one-ten')}
+ const t=ri(r,2,5),o=ri(r,0,9),n=t*10+o;return qobj('N5',`${tenLabel(t)} and ${oneLabel(o)} make what number?`,n,[t+o,o*10+t,n+10],base10(t,o),'Put the tens first, then the ones.','make');
 }
 
 function genN10(r,level,easy=false){
  level=clampLevel(level);let a,b;
- if(easy){a=ri(r,3,7);b=ri(r,1,Math.min(3,9-a))}
- else if(level===0){a=ri(r,7,9);b=ri(r,2,5);if(a+b<11)b=11-a}
- else if(level===1){const ones=ri(r,7,9);a=10+ones;b=ri(r,2,5);if(ones+b<10)b=10-ones+1}
- else {const tens=ri(r,2,3),ones=ri(r,7,9);a=tens*10+ones;b=ri(r,2,6);if(ones+b<10)b=10-ones+1}
- const c=a+b,mode=easy||level===0?'sum':pick(r,['sum','story']);
- if(mode==='sum')return qobj('N10',`${a} + ${b} = ?`,c,numChoices(c),equationVisual(`${a} + ${b}`),'Try making the next ten first if that helps.','sum');
- return qobj('N10',`Mia has ${a} blocks. She gets ${b} more. How many now?`,c,numChoices(c),'','Add the new blocks.','story');
+ if(easy){a=ri(r,1,3);b=ri(r,1,3);while(a+b>6)b=1}
+ else if(level===0){a=ri(r,2,5);b=ri(r,1,4);while(a+b>10)b=Math.max(1,b-1)}
+ else if(level===1){a=ri(r,7,9);b=ri(r,2,5);if(a+b<11)b=11-a}
+ else {const ones=ri(r,7,9);a=10+ones;b=ri(r,2,5);if(ones+b<10)b=10-ones+1}
+ const c=a+b,visual=level===0||easy?additionDotsVisual(a,b):equationVisual(`${a} + ${b}`);return qobj('N10',`${a} + ${b} = ?`,c,numChoices(c),visual,level===0||easy?'Count the two groups together.':'Try making the next ten first if that helps.','sum');
 }
 
 function genN11(r,level,easy=false){
  level=clampLevel(level);let a,b;
- if(easy){a=ri(r,6,9);b=ri(r,1,Math.min(4,a-2))}
- else if(level===0){a=ri(r,10,18);b=ri(r,2,Math.min(7,a-2))}
- else if(level===1){a=ri(r,20,29);b=ri(r,2,7)}
- else {a=ri(r,30,39);b=ri(r,2,8)}
- const c=a-b,mode=easy||level===0?'difference':pick(r,['difference','story']);
- if(mode==='difference')return qobj('N11',`${a} − ${b} = ?`,c,numChoices(c),equationVisual(`${a} − ${b}`),'Take away the smaller number.','difference');
- return qobj('N11',`There are ${a} blocks. ${b} are taken away. How many are left?`,c,numChoices(c),'','Take away the blocks that are gone.','story');
+ if(easy){a=ri(r,4,6);b=1}
+ else if(level===0){a=ri(r,6,10);b=ri(r,1,Math.min(3,a-2))}
+ else if(level===1){a=ri(r,11,18);b=ri(r,2,Math.min(6,a-2))}
+ else {a=ri(r,20,29);b=ri(r,2,7)}
+ const c=a-b;if(easy||level===0)return qobj('N11',`${a} stars. Take away ${b}. How many are left?`,c,numChoices(c),takeAwayVisual(a,b),'Count the stars that are left.','take-away-visual');return qobj('N11',`${a} − ${b} = ?`,c,numChoices(c),equationVisual(`${a} − ${b}`),'Take away the smaller number.','difference');
 }
 
 function genN16(r,level,easy=false){
  level=clampLevel(level);
- if(easy)return qobj('N16','Is half of the shape shaded?','Yes',['No'],fractionVisual(1,2),'Yes. One of two equal parts is shaded.','easy-half');
- if(level===0)return qobj('N16','What part of the shape is shaded?','One half',['One quarter','All of it'],fractionVisual(1,2),'One of two equal parts is one half.','half');
- if(level===1){const mode=pick(r,['half','quarter']);if(mode==='half')return qobj('N16','What part of the shape is shaded?','One half',['One quarter','All of it'],fractionVisual(1,2),'One of two equal parts is one half.','half');return qobj('N16','What part of the shape is shaded?','One quarter',['One half','All of it'],fractionVisual(1,4),'One of four equal parts is one quarter.','quarter')}
- return qobj('N16','Two quarters are shaded. Is that the same as one half?','Yes',['No'],fractionVisual(2,4),'Two quarters make one half.','two-quarters');
+ if(easy||level===0)return qobj('N16','Is half of the shape coloured?','Yes',['No'],fractionVisual(1,2),'Yes. One of two equal parts is coloured.','half-yes-no');
+ if(level===1){const half=r()<.55;if(half)return qobj('N16','Which part is coloured?','One half',['One quarter','All of it'],fractionVisual(1,2),'One of two equal parts is one half.','half');return qobj('N16','Which part is coloured?','One quarter',['One half','All of it'],fractionVisual(1,4),'One of four equal parts is one quarter.','quarter')}
+ return qobj('N16','Two quarters are coloured. Is that the same as one half?','Yes',['No'],fractionVisual(2,4),'Two quarters make one half.','two-quarters');
 }
 
 function genM1(r,level,easy=false){
@@ -260,26 +249,24 @@ function genM1(r,level,easy=false){
 
 function genM3(r,level,easy=false){
  level=clampLevel(level);
- if(easy||level===0){const len=ri(r,3,easy?5:8);return qobj('M3','How long is the object?',`${len} cm`,[`${Math.max(1,len-1)} cm`,`${len+1} cm`],rulerVisual(len),'Start at 0 and read where the object ends.','from-zero')}
- if(level===1&&r()<.5)return qobj('M3','Where should the object start on the ruler?','0',['1','2','10'],rulerVisual(6),'Put one end at 0.','start-zero');
- if(level===1){const len=ri(r,5,9);return qobj('M3','How long is the object?',`${len} cm`,[`${len-1} cm`,`${len+1} cm`],rulerVisual(len),'Start at 0 and read where the object ends.','from-zero')}
- const len=ri(r,4,7),start=1,end=start+len;return qobj('M3',`It starts at 1, not 0. Is it ${end} cm long?`,'No',['Yes'],rulerOffsetVisual(start,len),`No. It did not start at 0. Its length is ${len} cm.`,'spot-start');
+ if(easy||level===0){const len=ri(r,2,easy?4:6);return qobj('M3','How long is the line?',`${len} cm`,[`${Math.max(1,len-1)} cm`,`${len+1} cm`],rulerVisual(len),'Start at 0 and read where the line ends.','from-zero')}
+ if(level===1){const len=ri(r,4,9);return qobj('M3','How long is the line?',`${len} cm`,[`${len-1} cm`,`${len+1} cm`],rulerVisual(len),'Start at 0 and read where the line ends.','from-zero')}
+ const len=ri(r,4,7),start=1,end=start+len;return qobj('M3',`It starts at 1, not 0. Is it ${end} cm long?`,'No',['Yes'],rulerOffsetVisual(start,len),`No. Its length is ${len} cm.`,'spot-start');
 }
 
 function genM7(r,level,easy=false){
- level=clampLevel(level);const hour=ri(r,1,12);
- if(easy)return qobj('M7','Which time matches this clock?',`${hour}:00`,[`${hour}:30`],clockVisual(hour,0),'At o’clock, the minute hand points to 12.','easy-oclock');
- if(level===0)return qobj('M7','Which time matches this clock?',`${hour}:00`,[`${hour}:30`,`${hour===12?1:hour+1}:00`],clockVisual(hour,0),'At o’clock, the minute hand points to 12.','oclock');
- if(level===1){const half=r()<.55;if(!half)return qobj('M7','Which time matches this clock?',`${hour}:00`,[`${hour}:30`,`${hour===12?1:hour+1}:00`],clockVisual(hour,0),'At o’clock, the minute hand points to 12.','oclock');return qobj('M7','Which time matches this clock?',`${hour}:30`,[`${hour}:00`,`${hour===12?1:hour+1}:30`],clockVisual(hour,30),'Half past means 30 minutes past the hour.','half-past')}
- if(r()<.65)return qobj('M7','Which time matches this clock?',`${hour}:30`,[`${hour}:00`,`${hour===12?1:hour+1}:30`],clockVisual(hour,30),'Half past means 30 minutes past the hour.','half-past');
- return qobj('M7',`It is ${hour}:00. What time is one hour later?`,`${hour===12?1:hour+1}:00`,[`${hour}:30`,`${hour}:00`],'','One hour later is the next hour.','one-hour');
+ level=clampLevel(level);const hour=easy?ri(r,1,3):level===0?ri(r,1,6):ri(r,1,12);
+ if(easy||level===0)return qobj('M7','What time is it?',`${hour} o’clock`,[`${hour===1?2:hour-1} o’clock`,`${hour===12?1:hour+1} o’clock`],clockVisual(hour,0),'The minute hand points to 12.','oclock');
+ if(level===1){const half=r()<.5;if(!half)return qobj('M7','What time is it?',`${hour} o’clock`,[`${hour}:30`,`${hour===12?1:hour+1} o’clock`],clockVisual(hour,0),'The minute hand points to 12.','oclock');return qobj('M7','What time is it?',`Half past ${hour}`,[`${hour} o’clock`,`Half past ${hour===12?1:hour+1}`],clockVisual(hour,30),'The minute hand points to 6 at half past.','half-past')}
+ if(r()<.6)return qobj('M7','What time is it?',`Half past ${hour}`,[`${hour} o’clock`,`Half past ${hour===12?1:hour+1}`],clockVisual(hour,30),'The minute hand points to 6 at half past.','half-past');return qobj('M7',`It is ${hour} o’clock. What time is one hour later?`,`${hour===12?1:hour+1} o’clock`,[`Half past ${hour}`,`${hour} o’clock`],'','One hour later is the next hour.','one-hour');
 }
 
 function genM9(r,level,easy=false){
  level=clampLevel(level);
- if(easy||level===0){const mode=easy?'coinValue':pick(r,['coinValue','twoCoins']);if(mode==='coinValue'){const v=pick(r,[10,20,50]);return qobj('M9',`Which coin is ${v}c?`,`${v}c`,[...([10,20,50].filter(x=>x!==v).map(x=>`${x}c`))],coinsVisual([10,20,50]),'Look at the number on the coin.','coin-value')}const vals=pick(r,[[10,20],[20,20],[20,50],[10,50]]),sum=vals[0]+vals[1];return qobj('M9','How much are these coins worth?',money(sum),[money(Math.max(10,sum-10)),money(sum+10)],coinsVisual(vals),'Add the two coin values.','two-coins')}
- if(level===1){const mode=pick(r,['twoCoins','euroPlus','makeEuro']);if(mode==='twoCoins'){const vals=pick(r,[[20,50],[50,50],[20,20]]),sum=vals[0]+vals[1];return qobj('M9','How much are these coins worth?',money(sum),[money(Math.max(10,sum-10)),money(sum+10)],coinsVisual(vals),'Add the two coin values.','two-coins')}if(mode==='euroPlus'){const c=pick(r,[10,20,50]);return qobj('M9',`How much is €1 and ${c}c?`,money(100+c),[money(100+Math.max(0,c-10)),money(100+c+10)],coinsVisual([100,c]),'Keep the euro and add the cents.','euro-plus')}return qobj('M9','Which coins make €1?','50c + 50c',['20c + 20c','50c + 20c'],coinsVisual([50,50]),'Two 50c coins make €1.','make-euro')}
- const vals=pick(r,[[50,20,10],[50,20,20],[20,20,10]]),sum=vals.reduce((a,b)=>a+b,0);return qobj('M9','How much are these coins worth?',money(sum),[money(sum-10),money(sum+10),money(sum+20)],coinsVisual(vals),'Add the coin values.','three-coins');
+ if(easy)return qobj('M9','Is this a €1 coin?','Yes',['No'],coinsVisual([100]),'Yes. The coin says €1.','euro-one');
+ if(level===0){const v=pick(r,[20,50,100]);return qobj('M9','How much is this coin?',v===100?'€1':`${v}c`,[...([20,50,100].filter(x=>x!==v).map(x=>x===100?'€1':`${x}c`))],coinsVisual([v]),'Look at the number on the coin.','one-coin')}
+ if(level===1){const vals=pick(r,[[10,20],[20,20],[20,50],[50,50]]),sum=vals[0]+vals[1];return qobj('M9','How much are these coins worth?',money(sum),[money(Math.max(10,sum-10)),money(sum+10)],coinsVisual(vals),'Add the two coin values.','two-coins')}
+ const c=pick(r,[10,20,50]);return qobj('M9',`How much is €1 and ${c}c?`,money(100+c),[money(100+Math.max(0,c-10)),money(100+c+10)],coinsVisual([100,c]),'Keep the euro and add the cents.','euro-plus');
 }
 
 function genA1(r,level,easy=false){
@@ -290,14 +277,13 @@ function genA1(r,level,easy=false){
 
 function genA2(r,level,easy=false){
  level=clampLevel(level);let step,start;
- if(easy){step=1;start=ri(r,1,4)}
- else if(level===0){step=pick(r,[1,2,5,10]);start=step===1?ri(r,1,4):step===2?pick(r,[0,2,4]):step===5?pick(r,[0,5,10]):pick(r,[0,10])}
- else if(level===1){step=pick(r,[2,5,10]);start=step===2?pick(r,[0,2,4,6]):step===5?pick(r,[0,5,10]):pick(r,[0,10])}
- else {step=pick(r,[2,5,10]);start=step===2?pick(r,[1,3,5,7]):step===5?pick(r,[5,10,15]):pick(r,[0,10])}
+ if(easy||level===0){step=1;start=ri(r,1,3)}
+ else if(level===1){step=pick(r,[2,5]);start=step===2?pick(r,[0,2,4]):pick(r,[0,5])}
+ else {step=pick(r,[2,5,10]);start=step===2?pick(r,[1,3,5]):step===5?pick(r,[5,10]):pick(r,[0,10])}
  const vals=[start,start+step,start+2*step,start+3*step],next=start+4*step;
- if(easy||level===0)return qobj('A2',`${vals.join(', ')}, __. What comes next?`,next,[next-1,next+1],equationVisual(vals.join('  ')),`The number pattern goes up by ${step} each time.`,'next');
- if(level===1||r()<.6){const miss=ri(r,1,2),shown=vals.map((v,i)=>i===miss?'__':v);return qobj('A2',`${shown.join(', ')}. Which number is missing?`,vals[miss],[vals[miss]-1,vals[miss]+1],equationVisual(shown.join('  ')),`The number pattern goes up by ${step} each time.`,'missing')}
- return qobj('A2','What is added each time?',step,[step+1,Math.max(1,step-1)],equationVisual(vals.join('  ')),`Each number is ${step} more than the one before.`,'how-much');
+ if(easy||level===0)return qobj('A2','Which number comes next?',next,[next-1,next+1],equationVisual(`${vals.join(', ')}, __`),`The numbers go up by ${step}.`,'next');
+ if(level===1||r()<.65){const miss=ri(r,1,2),shown=vals.map((v,i)=>i===miss?'__':v);return qobj('A2','Which number is missing?',vals[miss],[vals[miss]-1,vals[miss]+1],equationVisual(shown.join(', ')),`The numbers go up by ${step}.`,'missing')}
+ return qobj('A2','What is added each time?',step,[step+1,Math.max(1,step-1)],equationVisual(vals.join(', ')),`Each number is ${step} more than the one before.`,'how-much');
 }
 
 function genA5(r,level,easy=false){
@@ -308,8 +294,9 @@ function genA5(r,level,easy=false){
 }
 
 function genS1(r,level,easy=false){
- level=clampLevel(level);const items={1:'💧',3:'🪑',4:'🌳',5:'⚽',7:'⭐'};
- if(easy||level===0){const right=r()<.5;return qobj('S1',right?'What is to the right of the tree?':'What is above the tree?',right?'Ball':'Pond',right?['Bench','Pond']:['Ball','Bench'],mapVisual(items),right?'Look one square to the right.':'Look one square up.',right?'right':'above')}
+ level=clampLevel(level);
+ if(easy||level===0){const pos=pick(r,['under','on','beside']),ans={under:'Under the table',on:'On the table',beside:'Beside the table'}[pos];return qobj('S1','Where is the ball?',ans,['Under the table','On the table','Beside the table'].filter(x=>x!==ans),positionVisual(pos),'Look at where the ball is.','simple-position')}
+ const items={1:'💧',3:'🪑',4:'🌳',5:'⚽',7:'⭐'};
  if(level===1)return qobj('S1','Start at the tree. Move one square right. Where are you?','Ball',['Bench','Pond','Star'],mapVisual(items),'One square right takes you to the ball.','move-one');
  return qobj('S1','Start at the pond. Move down one square, then right one square. Where are you?','Ball',['Tree','Bench','Star'],mapVisual(items),'Follow one step at a time.','two-step');
 }
@@ -322,18 +309,16 @@ function genS4(r,level,easy=false){
 }
 
 function genS7(r,level,easy=false){
- level=clampLevel(level);const kinds=['Slide','Turn','Flip'],kind=pick(r,kinds);
- if(easy)return qobj('S7',`Did the shape ${kind.toLowerCase()}?`,'Yes',['No'],movementVisual(kind),`Yes. That is a ${kind.toLowerCase()}.`,'yes-no');
- if(level===0)return qobj('S7','Did the shape slide, turn or flip?',kind,kinds.filter(x=>x!==kind),movementVisual(kind),kind==='Slide'?'It moved without turning.':kind==='Turn'?'It changed the way it was facing.':'It flipped to the other side.','name');
- if(level===1)return qobj('S7','What happened to the shape?',kind,kinds.filter(x=>x!==kind),movementVisual(kind),kind==='Slide'?'It slid to a new place.':kind==='Turn'?'It turned to face a new way.':'It flipped to the other side.','identify');
- return qobj('S7','Which move keeps the shape facing the same way?','Slide',['Turn','Flip'],movementVisual('Slide'),'A slide moves the shape without turning it.','same-way');
+ level=clampLevel(level);
+ if(easy||level===0){const kind=pick(r,['Slide','Turn']);if(kind==='Slide')return qobj('S7','Did the arrow turn?','No',['Yes'],movementVisual('Slide'),'No. It moved but kept pointing the same way.','no-turn');return qobj('S7','Did the arrow turn?','Yes',['No'],movementVisual('Turn'),'Yes. It changed the way it was pointing.','yes-turn')}
+ const kinds=['Slide','Turn','Flip'],kind=pick(r,kinds);if(level===1)return qobj('S7','What happened to the shape?',kind,kinds.filter(x=>x!==kind),movementVisual(kind),kind==='Slide'?'It slid to a new place.':kind==='Turn'?'It turned to face a new way.':'It flipped to the other side.','identify');return qobj('S7','Which move keeps the shape facing the same way?','Slide',['Turn','Flip'],movementVisual('Slide'),'A slide moves the shape without turning it.','same-way');
 }
 
-function makeData(r){const names=shuffle(r,['Apples','Bananas','Pears','Oranges']).slice(0,3),vals=shuffle(r,[2,3,4,5]);return Object.fromEntries(names.map((n,i)=>[n,vals[i]]))}
+function makeData(r){const names=shuffle(r,['Apples','Pears','Oranges']).slice(0,3),vals=shuffle(r,[2,3,4]);return Object.fromEntries(names.map((n,i)=>[n,vals[i]]))}
 function genD2(r,level,easy=false){
  level=clampLevel(level);const data=makeData(r),entries=Object.entries(data);
- if(easy||level===0){const mode=easy?'exact':pick(r,['exact','most']);if(mode==='exact'){const [name,val]=pick(r,entries);return qobj('D2',`How many children chose ${name.toLowerCase()}?`,val,[Math.max(0,val-1),val+1],pictureChartVisual(data),'Count the squares on that row.','exact')}const [name]=entries.reduce((a,b)=>a[1]>b[1]?a:b);return qobj('D2','Which fruit did the most children choose?',name,entries.map(x=>x[0]).filter(x=>x!==name),pictureChartVisual(data),'Look for the row with the most squares.','most')}
- if(level===1){const mode=pick(r,['exact','most','fewest']);if(mode==='exact'){const [name,val]=pick(r,entries);return qobj('D2',`How many children chose ${name.toLowerCase()}?`,val,[Math.max(0,val-1),val+1],pictureChartVisual(data),'Count the squares on that row.','exact')}if(mode==='most'){const [name]=entries.reduce((a,b)=>a[1]>b[1]?a:b);return qobj('D2','Which fruit did the most children choose?',name,entries.map(x=>x[0]).filter(x=>x!==name),pictureChartVisual(data),'Look for the row with the most squares.','most')}const [name]=entries.reduce((a,b)=>a[1]<b[1]?a:b);return qobj('D2','Which fruit did the smallest number of children choose?',name,entries.map(x=>x[0]).filter(x=>x!==name),pictureChartVisual(data),'Look for the row with the smallest number of squares.','fewest')}
+ if(easy||level===0){const mode=easy?'exact':pick(r,['exact','most']);if(mode==='exact'){const [name,val]=pick(r,entries);return qobj('D2',`How many children chose ${name.toLowerCase()}?`,val,[Math.max(0,val-1),val+1],pictureChartVisual(data),'Count the squares on that row.','exact')}const [name]=entries.reduce((a,b)=>a[1]>b[1]?a:b);return qobj('D2','Which fruit has the most?',name,entries.map(x=>x[0]).filter(x=>x!==name),pictureChartVisual(data),'Look for the row with the most squares.','most')}
+ if(level===1){const mode=pick(r,['exact','most','fewest']);if(mode==='exact'){const [name,val]=pick(r,entries);return qobj('D2',`How many children chose ${name.toLowerCase()}?`,val,[Math.max(0,val-1),val+1],pictureChartVisual(data),'Count the squares on that row.','exact')}if(mode==='most'){const [name]=entries.reduce((a,b)=>a[1]>b[1]?a:b);return qobj('D2','Which fruit has the most?',name,entries.map(x=>x[0]).filter(x=>x!==name),pictureChartVisual(data),'Look for the row with the most squares.','most')}const [name]=entries.reduce((a,b)=>a[1]<b[1]?a:b);return qobj('D2','Which fruit has the fewest?',name,entries.map(x=>x[0]).filter(x=>x!==name),pictureChartVisual(data),'Look for the row with the smallest number of squares.','fewest')}
  const [a,b]=shuffle(r,entries).slice(0,2),hi=a[1]>=b[1]?a:b,lo=a[1]>=b[1]?b:a,d=hi[1]-lo[1];return qobj('D2',`How many more children chose ${hi[0].toLowerCase()} than ${lo[0].toLowerCase()}?`,d,[Math.max(0,d-1),d+1],pictureChartVisual(data),'Compare the two rows.','how-many-more');
 }
 
@@ -353,7 +338,7 @@ const focus=String(params.get('focus')||'').split(',').filter(x=>SKILLS[x]).slic
 const review=String(params.get('review')||'').split(',').filter(x=>SKILLS[x]&&!focus.includes(x)).slice(0,2);
 function parseLevels(raw){const out={};String(raw||'').split(',').forEach(part=>{const [id,val]=part.split(':');if(SKILLS[id])out[id]=clampLevel(val)});return out}
 const linkLevels=parseLevels(params.get('levels'));
-const storeKey='imp_practice_v4_'+sid;
+const storeKey='imp_practice_v5_'+sid;
 let saved={days:{},intent:false,recentKeys:[],skillLevels:{},startLevels:{},skillStats:{}};
 try{saved=Object.assign(saved,JSON.parse(localStorage.getItem(storeKey)||'{}')||{})}catch(e){}
 if(!saved.days)saved.days={};if(!Array.isArray(saved.recentKeys))saved.recentKeys=[];if(!saved.skillLevels)saved.skillLevels={};if(!saved.startLevels)saved.startLevels={};if(!saved.skillStats)saved.skillStats={};
@@ -402,7 +387,7 @@ function init(){
  document.querySelectorAll('.subscribeBtn').forEach(b=>b.onclick=subscriptionIntent);track('practice_link_opened',{focus,levels:Object.fromEntries(focus.map(id=>[id,currentLevel(id)]))});show(n>7?'weekResult':'welcome');if(n>7)showWeek();
 }
 function startDay(day){
- currentDay=day;qIndex=0;firstTryCorrect=0;recovered=0;inEasy=false;answered=false;currentQuestions=[];dayFamilies=[];dayRng=rngFor(`${sid}|day-${day}|first-class-v4|${focus.join('-')}|${Date.now().toString().slice(0,7)}`);daySkillOrder=shuffle(dayRng,daySkills(day));
+ currentDay=day;qIndex=0;firstTryCorrect=0;recovered=0;inEasy=false;answered=false;currentQuestions=[];dayFamilies=[];dayRng=rngFor(`${sid}|day-${day}|first-class-v5|${focus.join('-')}|${Date.now().toString().slice(0,7)}`);daySkillOrder=shuffle(dayRng,daySkills(day));
  document.getElementById('dayLabel').textContent=`Day ${day} of 7`;renderDots(day);track('practice_day_started',{day,focus,levels:Object.fromEntries(focus.map(id=>[id,currentLevel(id)]))});show('practice');renderQ();
 }
 function renderQ(){
