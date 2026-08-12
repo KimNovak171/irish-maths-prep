@@ -1,9 +1,9 @@
 const SKILLS = {
-  N1:'Counting in groups', N4:'Place value', N5:'Tens and ones', N10:'Addition across ten',
-  N11:'Subtraction strategies', N16:'Simple fractions', M1:'Comparing measures', M3:'Using a ruler',
-  M7:'Time', M9:'Money', A1:'Growing patterns', A2:'Number sequences', A5:'Equality',
-  S1:'Position and direction', S4:'2-D shape properties', S7:'Flip, turn and slide',
-  D2:'Reading graphs', D3:'Using data as evidence'
+  N1:'Counting in groups', N4:'Place value', N5:'Tens and ones', N10:'Adding across ten',
+  N11:'Taking away', N16:'Halves and quarters', M1:'Comparing measures', M3:'Using a ruler',
+  M7:'Time', M9:'Money', A1:'Growing patterns', A2:'Number patterns', A5:'Same and equal',
+  S1:'Position and direction', S4:'2-D shapes', S7:'Slide, turn and flip',
+  D2:'Reading picture charts', D3:'Using a picture chart'
 };
 
 function escapeHtml(value) {
